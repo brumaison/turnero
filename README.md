@@ -35,3 +35,6 @@ Sistema interno de gestión de turnos para Círculo Médico. Uso exclusivo para 
 ## Desarrollado por
 
 ByV Desarrollo Web | byv.desarrolloweb@gmail.com
+
+- Bruno Maisón (Backend Developer - Frontend Developer)
+- Verónica Fraccalvieri (Diseñadora Multimedia - Frontend Developer )
