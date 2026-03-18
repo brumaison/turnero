@@ -1,0 +1,41 @@
+<?php
+namespace App\Controllers;
+
+use App\Core\View;
+use App\Core\Database;
+
+class TurnosController {
+    
+    public function index() {
+        $db = Database::getInstance();
+        
+        // Obtener turnos de hoy
+        $stmt = $db->prepare("
+            SELECT t.*, p.nombre, p.apellido, p.dni, pr.nombre as profesional
+            FROM turnos t
+            JOIN pacientes p ON t.paciente_id = p.id
+            JOIN profesionales pr ON t.profesional_id = pr.id
+            WHERE DATE(t.fecha_hora) = CURDATE()
+            ORDER BY t.fecha_hora ASC
+        ");
+        $stmt->execute();
+        $turnos = $stmt->fetchAll();
+        
+        View::render('turnos/index', [
+            'turnos' => $turnos,
+            'user_rol' => $_SESSION['user_rol'] ?? ''
+        ]);
+    }
+
+    public function buscarPaciente() {
+        header('Content-Type: application/json');
+        // Después implementamos
+        echo json_encode([]);
+    }
+
+    public function crearYReservar() {
+        header('Content-Type: application/json');
+        // Después implementamos
+        echo json_encode(['success' => true]);
+    }
+}

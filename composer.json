@@ -1,0 +1,14 @@
+{
+    "name": "byv/turneros",
+    "description": "Sistema de Turnos Multi-Consultorio",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require": {
+    "php": ">=8.1",
+    "vlucas/phpdotenv": "^5.5"
+    }
+}

@@ -1,0 +1,13 @@
+RewriteEngine On
+
+# Ignorar archivos y directorios reales (CSS, JS, img, etc.)
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Normalizar URLs: quitar slash final (opcional, para consistencia)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+# Redirigir todo lo demás a index.php
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
