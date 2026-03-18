@@ -23,7 +23,8 @@ class TurnosController {
         
         View::render('turnos/index', [
             'turnos' => $turnos,
-            'user_rol' => $_SESSION['user_rol'] ?? ''
+            'pageTitle' => 'Gestión de Turnos',
+            'activePage' => 'turnos'
         ]);
     }
 

@@ -7,15 +7,17 @@ use App\Core\View;
 class AuthController {
     
     public function showLogin() {
-        View::render('auth/login');
+        View::render('auth/login', [], false);
     }
 
     public function login() {
+        csrf_verify();
+        
         $email = $_POST['email'] ?? '';
         $password = $_POST['password'] ?? '';
 
         if (empty($email) || empty($password)) {
-            View::render('auth/login', ['error' => 'Completa todos los campos']);
+            View::render('auth/login', ['error' => 'Completa todos los campos'], false);
             return;
         }
 
@@ -32,9 +34,10 @@ class AuthController {
             
             redirect('/turnos');
         } else {
-            View::render('auth/login', ['error' => 'Email o contraseña incorrectos']);
+            View::render('auth/login', ['error' => 'Email o contraseña incorrectos'], false);
         }
     }
+
     public function logout() {
         session_destroy();
         redirect('/login');
