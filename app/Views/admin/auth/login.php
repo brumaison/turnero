@@ -19,7 +19,7 @@
                 </div>
             <?php endif; ?>
 
-            <form class="card card-md" action="<?= baseUrl('/login') ?>" method="post" autocomplete="off">
+            <form class="card card-md" action="<?= baseUrl('/admin/login') ?>" method="post" autocomplete="off">
                 <?= csrf_field() ?>
                 
                 <div class="card-body">

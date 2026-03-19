@@ -4,7 +4,7 @@ namespace App\Core\Middleware;
 class AuthMiddleware {
     public function handle(): bool {
         if (!isset($_SESSION['user_id'])) {
-            redirect('/login');
+            redirect('/admin/login');
             return false;
         }
         return true;

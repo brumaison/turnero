@@ -1,5 +1,5 @@
 <?php
-namespace App\Controllers;
+namespace App\Controllers\Admin;
 
 use App\Core\View;
 use App\Core\Database;
@@ -21,7 +21,7 @@ class TurnosController {
         $stmt->execute();
         $turnos = $stmt->fetchAll();
         
-        View::render('turnos/index', [
+        View::render('admin/turnos/index', [
             'turnos' => $turnos,
             'pageTitle' => 'Gestión de Turnos',
             'activePage' => 'turnos'

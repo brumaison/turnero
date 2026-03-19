@@ -23,7 +23,7 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>                
                 <h1 class="navbar-brand navbar-brand-autodark">
-                    <a href="<?= baseUrl('/turnos') ?>">
+                    <a href="<?= baseUrl('/admin/turnos') ?>">
                         <span class="navbar-brand-image">
                             <strong><?= config('logo') ?> <?= config('short_name') ?></strong>
                         </span>
@@ -32,7 +32,7 @@
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">
                         <li class="nav-item">
-                            <a class="nav-link <?= ($activePage ?? '') == 'turnos' ? 'active' : '' ?>" href="<?= baseUrl('/turnos') ?>">
+                            <a class="nav-link <?= ($activePage ?? '') == 'turnos' ? 'active' : '' ?>" href="<?= baseUrl('/admin/turnos') ?>">
                                 <span class="nav-link-icon d-md-none d-lg-inline-block"><i class="ti ti-calendar"></i></span>
                                 <span class="nav-link-title">Turnos</span>
                             </a>
@@ -57,7 +57,7 @@
                         <!-- Toggle eliminado - ya está en el sidebar -->
                         
                         <h1 class="navbar-brand d-none d-md-block">
-                            <a href="<?= baseUrl('/turnos') ?>" class="text-reset text-decoration-none">
+                            <a href="<?= baseUrl('/admin/turnos') ?>" class="text-reset text-decoration-none">
                                 <strong><?= config('logo') ?> <?= config('short_name') ?></strong>
                             </a>
                         </h1>
@@ -71,11 +71,11 @@
                                 </span>
                                 <div class="d-none d-xl-block ps-2">
                                     <div><?= htmlspecialchars($_SESSION['user_email'] ?? 'Usuario') ?></div>
-                                    <div class="mt-1 small text-muted"><?= htmlspecialchars($_SESSION['user_rol'] ?? '') ?></div>
+                                    <div class="mt-1 small text-muted"><?= htmlspecialchars($_SESSION['user_role_slug'] ?? '') ?></div>
                                 </div>
                             </a>
                             <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                                <a href="<?= baseUrl('/logout') ?>" class="dropdown-item">
+                                <a href="<?= baseUrl('/admin/logout') ?>" class="dropdown-item">
                                     <i class="ti ti-logout me-2"></i>Cerrar Sesión
                                 </a>
                             </div>

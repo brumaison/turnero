@@ -5,6 +5,4 @@ Thumbs.db
 *.log
 .vscode/
 .idea/
-*.sql              ← Agregar esto
-scripts/*.sql      ← Agregar esto*.sql
-scripts/*.sql
+

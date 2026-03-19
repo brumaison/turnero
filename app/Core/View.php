@@ -16,6 +16,6 @@ class View {
         require basePath('app/Views/' . $path . '.php');
         $content = ob_get_clean();
 
-        require basePath('app/Views/layouts/main.php');
+        require basePath('app/Views/admin/layouts/main.php');
     }
 }
