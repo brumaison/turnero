@@ -23,7 +23,7 @@
                 <?= csrf_field() ?>
                 
                 <div class="card-body">
-                    <h2 class="card-title text-center mb-4">Iniciar Sesión</h2>
+                    <h2 class="card-title text-center mb-4">Iniciar Sesión en el Sistema</h2>
                     
                     <div class="mb-3">
                         <label class="form-label" for="email">Email</label>
