@@ -33,31 +33,49 @@ class Router {
         $uri = rtrim($uri, '/');
         if ($uri === '') $uri = '/';
 
+        // 1. Intentar match exacto primero (más rápido)
         if (isset($this->routes[$method][$uri])) {
-            $route = $this->routes[$method][$uri];
+            return $this->executeRoute($this->routes[$method][$uri], []);
+        }
 
-            // Ejecutar middleware
-            foreach ($route['middleware'] as $mw) {
-                $class = $this->middlewareAliases[$mw] ?? $mw;
-                $instance = new $class();
-                if (!$instance->handle()) {
-                    return;
-                }
-            }
-
-            // Ejecutar handler
-            $handler = $route['handler'];
+        // 2. Intentar match con parámetros dinámicos {id}, {slug}, etc.
+        foreach ($this->routes[$method] as $routePath => $routeConfig) {
+            if (strpos($routePath, '{') === false) continue;
             
-            if ($handler instanceof \Closure) {
-                $handler();
-            } elseif (is_array($handler)) {
-                [$controllerClass, $method] = $handler;
-                $controller = new $controllerClass();
-                $controller->$method();
+            // Convertir {param} a regex capturable
+            $pattern = '#^' . preg_replace('/\{(\w+)\}/', '(?P<$1>[^/]+)', $routePath) . '$#';
+            
+            if (preg_match($pattern, $uri, $matches)) {
+                // Extraer solo los parámetros nombrados
+                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                return $this->executeRoute($routeConfig, $params);
             }
-        } else {
-            http_response_code(404);
-            echo "404 - Página no encontrada: " . $uri;
+        }
+
+        // 3. No encontrado
+        http_response_code(404);
+        echo "404 - Página no encontrada: " . $uri;
+    }
+
+    protected function executeRoute($routeConfig, $params) {
+        // Ejecutar middleware
+        foreach ($routeConfig['middleware'] as $mw) {
+            $class = $this->middlewareAliases[$mw] ?? $mw;
+            $instance = new $class();
+            if (!$instance->handle()) {
+                return;
+            }
+        }
+
+        // Ejecutar handler con parámetros
+        $handler = $routeConfig['handler'];
+        
+        if ($handler instanceof \Closure) {
+            $handler(...array_values($params));
+        } elseif (is_array($handler)) {
+            [$controllerClass, $method] = $handler;
+            $controller = new $controllerClass();
+            $controller->$method(...array_values($params));
         }
     }
 }
