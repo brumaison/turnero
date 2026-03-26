@@ -58,6 +58,11 @@ return function($router) {
     $router->get('/admin/turnos', [TurnosController::class, 'index'], ['auth']);
     $router->get('/admin/turnos/create', [TurnosController::class, 'create'], ['auth']);
     $router->post('/admin/turnos/store', [TurnosController::class, 'store'], ['auth']);
+    
+    // Editar turno
+    $router->get('/admin/turnos/{id}/edit', [TurnosController::class, 'edit'], ['auth']);
+    $router->post('/admin/turnos/{id}/update', [TurnosController::class, 'update'], ['auth']);
+    
     $router->get('/admin/turnos/search-patient', [TurnosController::class, 'searchPatient'], ['auth']);
     
     // Turnos: Calendario

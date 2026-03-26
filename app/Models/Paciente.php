@@ -16,6 +16,11 @@ class Paciente extends Model {
         $stmt->execute(['texto' => "%{$texto}%"]);
         return $stmt->fetchAll();
     }
+    public static function findById($id) {
+        $stmt = self::db()->prepare("SELECT * FROM pacientes WHERE id = ?");
+        $stmt->execute([$id]);
+        return $stmt->fetch() ?: null;
+    }
     public static function create($data) {
         $stmt = self::db()->prepare("
             INSERT INTO pacientes (dni, apellido, nombre, email, telefono)

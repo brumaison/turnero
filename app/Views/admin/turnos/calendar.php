@@ -26,7 +26,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
+        initialView: 'timeGridWeek',
         locale: 'es',
         headerToolbar: {
             left: 'prev,next today',
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         eventClick: function(info) {
             if (confirm('¿Editar este turno?')) {
-                window.location.href = '/admin/turnos/' + info.event.id + '/edit';
+                window.location.href = '<?= baseUrl('/admin/turnos') ?>/' + info.event.id + '/edit';
             }
         }
     });

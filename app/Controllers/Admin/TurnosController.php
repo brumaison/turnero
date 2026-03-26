@@ -2,6 +2,7 @@
 namespace App\Controllers\Admin;
 
 use App\Core\View;
+use App\Core\Flash;
 use App\Models\Turno;
 use App\Models\Paciente;
 use App\Models\Profesional;
@@ -18,7 +19,6 @@ class TurnosController {
         
         $turnos = Turno::getRango($fecha_inicio, $fecha_fin, $profesional_id);
         
-        // Filtrar por estado en PHP (simple) o agregar en Model
         if ($estado_id) {
             $turnos = array_filter($turnos, fn($t) => $t['estado_id'] == $estado_id);
         }
@@ -38,8 +38,6 @@ class TurnosController {
     public function create() {
         $profesionales = Profesional::todos();
         $consultorios = Turno::getConsultorios();
-        
-        // Si viene fecha del calendario, pre-cargar
         $fecha_seleccionada = $_GET['fecha'] ?? null;
         
         View::render('admin/turnos/create', [
@@ -53,26 +51,23 @@ class TurnosController {
 
     // POST /admin/turnos/store → Guarda y redirige
     public function store() {
-        // Validación básica
         if (empty($_POST['fecha_hora']) || strtotime($_POST['fecha_hora']) < time()) {
-            $_SESSION['error'] = 'La fecha debe ser futura';
+            Flash::error('La fecha debe ser futura');
             redirect('/admin/turnos/create');
         }
         
-        // Validar contra AGENDA (nuevo)
         $duracion = $_POST['duracion_minutos'] ?? 30;
-        if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
-            $_SESSION['error'] = 'Horario no disponible en la agenda del profesional';
-            redirect('/admin/turnos/create');
-        }
         
-        // Validar superposición (doble check)
+        /*if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
+            Flash::error('Horario no disponible en la agenda del profesional');
+            redirect('/admin/turnos/create');
+        }*/
+        
         if (Turno::existeSuperposicion($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
-            $_SESSION['error'] = 'Ese horario ya está ocupado';
+            Flash::error('Ese horario ya está ocupado');
             redirect('/admin/turnos/create');
         }
         
-        // Resolver paciente_id (existente o nuevo)
         $paciente_id = $_POST['paciente_id'] ?? null;
         
         if (empty($paciente_id) && !empty($_POST['nuevo_paciente_dni'])) {
@@ -85,7 +80,7 @@ class TurnosController {
         }
         
         if (empty($paciente_id)) {
-            $_SESSION['error'] = 'Debe seleccionar o crear un paciente';
+            Flash::error('Debe seleccionar o crear un paciente');
             redirect('/admin/turnos/create');
         }
         
@@ -100,9 +95,60 @@ class TurnosController {
         ];
         
         if (Turno::create($data)) {
-            $_SESSION['success'] = 'Turno creado';
+            Flash::success('Turno creado');
         } else {
-            $_SESSION['error'] = 'Error al crear';
+            Flash::error('Error al crear');
+        }
+        redirect('/admin/turnos');
+    }
+
+    // 🔴 NUEVO: GET /admin/turnos/{id}/edit
+    public function edit($id) {
+        $turno = Turno::findById($id);
+        if (!$turno) { 
+            Flash::error('Turno no encontrado');
+            redirect('/admin/turnos'); 
+            return; 
+        }
+        
+        $paciente = Paciente::findById($turno['paciente_id']);
+        
+        View::render('admin/turnos/edit', [
+            'turno' => $turno,
+            'paciente' => $paciente,
+            'profesionales' => Profesional::todos(),
+            'consultorios' => Turno::getConsultorios(),
+            'pageTitle' => 'Editar Turno',
+            'activePage' => 'turnos',
+            'activeSubPage' => 'edit'
+        ]);
+    }
+
+    // 🔴 NUEVO: POST /admin/turnos/{id}/update
+    public function update($id) {
+        $duracion = $_POST['duracion_minutos'] ?? 30;
+        
+        // Validar agenda si cambió horario/profesional
+        if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion, $id)) {
+            Flash::error('Horario no disponible en la agenda');
+            redirect("/admin/turnos/{$id}/edit");
+            return;
+        }
+        
+        $data = [
+            'paciente_id' => $_POST['paciente_id'] ?? null,
+            'profesional_id' => $_POST['profesional_id'] ?? null,
+            'consultorio_id' => $_POST['consultorio_id'] ?? null,
+            'fecha_hora' => $_POST['fecha_hora'] ?? null,
+            'observaciones' => $_POST['observaciones'] ?? '',
+            'estado_id' => $_POST['estado_id'] ?? 1,
+            'duracion_minutos' => $duracion,
+        ];
+        
+        if (Turno::update($id, $data)) {
+            Flash::success('Turno actualizado');
+        } else {
+            Flash::error('Error al actualizar');
         }
         redirect('/admin/turnos');
     }
@@ -140,12 +186,12 @@ class TurnosController {
             $events[] = [
                 'id' => $turno['id'],
                 'title' => ($turno['apellido'] ?? '') . ', ' . ($turno['nombre'] ?? '') . ' - ' . ($turno['profesional'] ?? ''),
-                'start' => $turno['fecha_hora'],
+                'start' => date('c', strtotime($turno['fecha_hora'])), // 🔴 Fix timezone: formato ISO 8601
                 'backgroundColor' => $this->getColorByEstado($turno['estado_id']),
                 'extendedProps' => [
                     'paciente' => $turno['apellido'] . ', ' . $turno['nombre'],
                     'profesional' => $turno['profesional'],
-                    'consultorio' => $turno['consultorio_id'] ?? '',
+                    'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio', // 🔴 Nombre para popover
                     'estado' => $turno['estado_id']
                 ]
             ];
@@ -156,11 +202,7 @@ class TurnosController {
 
     private function getColorByEstado($estado_id) {
         $colores = [
-            1 => '#ffc107', // Pendiente - Amarillo
-            2 => '#28a745', // Confirmado - Verde
-            3 => '#dc3545', // Cancelado - Rojo
-            4 => '#6c757d', // Ausente - Gris
-            5 => '#17a2b8'  // Realizado - Azul
+            1 => '#ffc107', 2 => '#28a745', 3 => '#dc3545', 4 => '#6c757d', 5 => '#17a2b8'
         ];
         return $colores[$estado_id] ?? '#ffc107';
     }
