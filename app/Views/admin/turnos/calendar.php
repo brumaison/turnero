@@ -1,3 +1,6 @@
+<style>
+.fc-event { cursor: pointer; }
+</style>
 <div class="card">
     <div class="card-header">
         <h3 class="card-title"><?= $pageTitle ?></h3>
@@ -15,16 +18,57 @@
     </div>
 </div>
 
-<!-- FullCalendar CSS -->
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<!-- Modal Único para Turnos -->
+<div class="modal modal-blur fade" id="modalTurno" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalle del Turno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalTurnoId">
+                <div class="mb-3">
+                    <label class="form-label text-muted">Paciente</label>
+                    <div id="modalPaciente" class="fw-bold"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Profesional</label>
+                    <div id="modalProfesional"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Fecha y Hora</label>
+                    <div id="modalFecha"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Estado</label>
+                    <span id="modalEstado" class="badge"></span>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Observaciones</label>
+                    <div id="modalObservaciones" class="text-muted small"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#" id="btnEditar" class="btn btn-primary">
+                    <i class="ti ti-edit"></i> Editar
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- FullCalendar -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
+    const modalTurno = new bootstrap.Modal(document.getElementById('modalTurno'));
+    
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'timeGridWeek',
         locale: 'es',
@@ -34,26 +78,33 @@ document.addEventListener('DOMContentLoaded', function() {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         
-        // 👇 POPOVER CON INFO DEL TURNO (HOVER)
+        // Hover → Tooltip informativo
         eventDidMount: function(info) {
             new bootstrap.Popover(info.el, {
                 title: info.event.title,
-                content: function() {
-                    const props = info.event.extendedProps;
-                    return `
-                        <small class="text-muted">
-                        <strong>Paciente:</strong> ${props.paciente || 'N/A'}<br>
-                        <strong>Profesional:</strong> ${props.profesional || 'N/A'}<br>
-                        <strong>Fecha:</strong> ${info.event.start.toLocaleString('es-AR')}<br>
-                        <strong>Estado:</strong> ${['Pendiente','Confirmado','Cancelado','Ausente','Realizado'][props.estado-1] || 'N/A'}
-                        </small>
-                    `;
-                },
+                content: `${info.event.extendedProps.paciente}<br>${info.event.start.toLocaleString('es-AR')}`,
                 trigger: 'hover',
                 placement: 'top',
-                html: true,
                 container: 'body'
             });
+        },
+        
+        // Click → Modal con acciones
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            const estados = ['Pendiente','Confirmado','Cancelado','Ausente','Realizado'];
+            const colores = ['yellow-lt','green-lt','red-lt','gray-lt','blue-lt'];
+            
+            document.getElementById('modalTurnoId').value = info.event.id;
+            document.getElementById('modalPaciente').textContent = props.paciente || 'N/A';
+            document.getElementById('modalProfesional').textContent = props.profesional || 'N/A';
+            document.getElementById('modalFecha').textContent = info.event.start.toLocaleString('es-AR');
+            document.getElementById('modalEstado').textContent = estados[props.estado-1] || 'N/A';
+            document.getElementById('modalEstado').className = 'badge bg-' + (colores[props.estado-1] || 'yellow-lt');
+            document.getElementById('modalObservaciones').textContent = props.observaciones || 'Sin observaciones';
+            document.getElementById('btnEditar').href = '<?= baseUrl('/admin/turnos') ?>/' + info.event.id + '/edit';
+            
+            modalTurno.show();
         },
         
         events: function(fetchInfo, successCallback) {
@@ -62,19 +113,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => successCallback(data));
         },
+        
         dateClick: function(info) {
             window.location.href = '<?= baseUrl('/admin/turnos/create') ?>?fecha=' + info.dateStr;
-        },
-        eventClick: function(info) {
-            if (confirm('¿Editar este turno?')) {
-                window.location.href = '<?= baseUrl('/admin/turnos') ?>/' + info.event.id + '/edit';
-            }
         }
     });
     
     calendar.render();
     
-    // Recargar al cambiar profesional
     document.getElementById('filtro_profesional').addEventListener('change', function() {
         calendar.refetchEvents();
     });
