@@ -68,4 +68,5 @@ return function($router) {
     // Turnos: Calendario
     $router->get('/admin/turnos/calendar', [TurnosController::class, 'calendar'], ['auth']);
     $router->get('/admin/turnos/get-events', [TurnosController::class, 'getEvents'], ['auth']);
+    $router->get('/admin/turnos/available-slots', [TurnosController::class, 'availableSlots'], ['auth']);
 };

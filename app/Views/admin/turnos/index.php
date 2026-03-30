@@ -107,10 +107,11 @@ $(document).ready(function() {
         order: [[0, 'asc']],
         pageLength: 10,
         responsive: true,
+        ordering: false,  // ← AGREGAR ESTA LÍNEA
         columnDefs: [
-            { responsivePriority: 1, targets: 0 }, // Fecha: siempre visible
-            { responsivePriority: 2, targets: 1 }, // Paciente: siempre visible
-            { responsivePriority: 5, targets: -1 } // Acciones: siempre visible
+            { responsivePriority: 1, targets: 0 },
+            { responsivePriority: 2, targets: 1 },
+            { responsivePriority: 5, targets: -1 }
         ]
     });
 });

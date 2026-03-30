@@ -10,6 +10,12 @@ use Dotenv\Dotenv;
 $dotenv = Dotenv::createImmutable(basePath(''));
 $dotenv->load();
 
+
+use Carbon\Carbon;
+Carbon::setLocale($_ENV['APP_LOCALE'] ?? 'es');
+// Timezone ya está seteado antes, pero si querés usar .env:
+// date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/Argentina/Buenos_Aires');
+
 use App\Core\Router;
 
 $router = new Router();

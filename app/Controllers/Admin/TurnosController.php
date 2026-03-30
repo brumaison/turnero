@@ -51,6 +51,7 @@ class TurnosController {
 
     // POST /admin/turnos/store → Guarda y redirige
     public function store() {
+        csrf_verify();
         if (empty($_POST['fecha_hora']) || strtotime($_POST['fecha_hora']) < time()) {
             Flash::error('La fecha debe ser futura');
             redirect('/admin/turnos/create');
@@ -58,10 +59,18 @@ class TurnosController {
         
         $duracion = $_POST['duracion_minutos'] ?? 30;
         
-        /*if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
+        // Validar agenda: warning si no hay configuración, error si está ocupada
+        $tiene_agenda = Agenda::getByProfesional($_POST['profesional_id']);
+        $dia_semana = date('N', strtotime($_POST['fecha_hora']));
+
+        $agenda_dia = array_filter($tiene_agenda, fn($a) => $a['dia_semana'] == $dia_semana && $a['activo']);
+
+        if (empty($agenda_dia)) {
+            Flash::warning('El profesional no tiene agenda configurada para ese día. ¿Continuar igual?');
+        } elseif (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
             Flash::error('Horario no disponible en la agenda del profesional');
             redirect('/admin/turnos/create');
-        }*/
+        }
         
         if (Turno::existeSuperposicion($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
             Flash::error('Ese horario ya está ocupado');
@@ -126,6 +135,7 @@ class TurnosController {
 
     // 🔴 NUEVO: POST /admin/turnos/{id}/update
     public function update($id) {
+        csrf_verify();
         $duracion = $_POST['duracion_minutos'] ?? 30;
         
         // Validar agenda si cambió horario/profesional
@@ -198,6 +208,36 @@ class TurnosController {
         }
         
         echo json_encode($events);
+    }
+    // GET /admin/turnos/available-slots → JSON con días y horarios disponibles
+    public function availableSlots() {
+        header('Content-Type: application/json');
+        
+        $profesional_id = $_GET['profesional_id'] ?? null;
+        $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-d');
+        $dias_a_mostrar = 15;
+        
+        if (!$profesional_id) {
+            echo json_encode(['error' => 'Falta profesional_id']);
+            return;
+        }
+        
+        $resultado = [];
+        
+        for ($i = 0; $i < $dias_a_mostrar; $i++) {
+            $fecha = date('Y-m-d', strtotime($fecha_desde . " +$i days"));
+            $horarios = Agenda::getHorariosDisponibles($profesional_id, $fecha);
+            
+            if (!empty($horarios)) {
+                $resultado[] = [
+                    'fecha' => $fecha,
+                    'fecha_label' => date('l d/m', strtotime($fecha)),
+                    'horarios' => $horarios
+                ];
+            }
+        }
+        
+        echo json_encode($resultado);
     }
 
     private function getColorByEstado($estado_id) {
