@@ -4,6 +4,7 @@ namespace App\Controllers\Admin;
 use App\Core\View;
 use App\Models\Agenda;
 use App\Models\Profesional;
+use App\Core\Flash;
 
 class AgendasController {
     
@@ -17,6 +18,12 @@ class AgendasController {
     }
 
     public function store($profesional_id) {
+        // Validar duplicado
+    if (Agenda::existeSuperposicion($profesional_id, $_POST['dia_semana'], $_POST['hora_inicio'], $_POST['hora_fin'], $agenda_id ?? null)) {
+        Flash::error('El horario se superpone con otro ya existente');
+        redirect("/admin/profesionales/{$profesional_id}/agenda");
+        return;
+    }
         Agenda::create([
             'profesional_id' => $profesional_id,
             'dia_semana' => $_POST['dia_semana'],
@@ -42,6 +49,12 @@ class AgendasController {
     }
 
     public function update($profesional_id, $agenda_id) {
+            // Validar duplicado
+        if (Agenda::existeSuperposicion($profesional_id, $_POST['dia_semana'], $_POST['hora_inicio'], $_POST['hora_fin'], $agenda_id ?? null)) {
+            Flash::error('El horario se superpone con otro ya existente');
+            redirect("/admin/profesionales/{$profesional_id}/agenda");
+            return;
+        }
         Agenda::update($agenda_id, [
             'dia_semana' => $_POST['dia_semana'],
             'hora_inicio' => $_POST['hora_inicio'],

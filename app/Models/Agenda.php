@@ -153,4 +153,42 @@ class Agenda extends Model {
         $stmt = self::db()->prepare("DELETE FROM agendas WHERE id = ?");
         return $stmt->execute([$id]);
     }
+    public static function existeDuplicado($profesional_id, $dia_semana, $hora_inicio, $hora_fin, $excluir_id = null) {
+        $sql = "SELECT COUNT(*) FROM agendas 
+                WHERE profesional_id = ? 
+                AND dia_semana = ? 
+                AND hora_inicio = ? 
+                AND hora_fin = ? 
+                AND activo = 1";
+        
+        $params = [$profesional_id, $dia_semana, $hora_inicio, $hora_fin];
+        
+        if ($excluir_id) {
+            $sql .= " AND id != ?";
+            $params[] = $excluir_id;
+        }
+        
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn() > 0;
+    }
+    public static function existeSuperposicion($profesional_id, $dia_semana, $hora_inicio, $hora_fin, $excluir_id = null) {
+        $sql = "SELECT COUNT(*) FROM agendas 
+                WHERE profesional_id = ? 
+                AND dia_semana = ? 
+                AND activo = 1
+                AND hora_inicio < ? 
+                AND hora_fin > ?";
+        
+        $params = [$profesional_id, $dia_semana, $hora_fin, $hora_inicio];
+        
+        if ($excluir_id) {
+            $sql .= " AND id != ?";
+            $params[] = $excluir_id;
+        }
+        
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn() > 0;
+    }
 }

@@ -114,9 +114,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => successCallback(data));
         },
         
-        dateClick: function(info) {
+        /*dateClick: function(info) {
             window.location.href = '<?= baseUrl('/admin/turnos/create') ?>?fecha=' + info.dateStr;
-        }
+        }*/
     });
     
     calendar.render();

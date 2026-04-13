@@ -50,11 +50,7 @@ class TurnosController extends Controller {
     }
 
     public function store() {
-        if (!csrf_verify()) {
-            Flash::error('Token de seguridad inválido');
-            redirect('/admin/turnos/create');
-            return;
-        }
+        csrf_verify();
         
         if (empty($_POST['fecha_hora']) || strtotime($_POST['fecha_hora']) < time()) {
             Flash::error('La fecha debe ser futura');
@@ -160,12 +156,7 @@ class TurnosController extends Controller {
     }
 
     public function update($id) {
-        if (!csrf_verify()) {
-            Flash::error('Token de seguridad inválido');
-            redirect("/admin/turnos/{$id}/edit");
-            return;
-        }
-        
+        csrf_verify();
         $duracion = $_POST['duracion_minutos'] ?? 30;
 
         if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion, $id)) {

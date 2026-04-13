@@ -1,5 +1,3 @@
-<?php $this->layout('admin/main', ['pageTitle' => $pageTitle, 'activePage' => $activePage]) ?>
-
 <div class="card">
     <div class="card-header"><h3 class="card-title">Editar Horario</h3></div>
     <div class="card-body">

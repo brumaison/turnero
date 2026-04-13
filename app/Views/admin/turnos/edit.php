@@ -5,7 +5,7 @@
     </div>
     <div class="card-body">
         <form method="POST" action="<?= baseUrl('/admin/turnos/'.$turno['id'].'/update') ?>">
-            
+            <?= csrf_field() ?>
             <!-- Paciente (solo lectura) -->
             <div class="mb-3">
                 <label class="form-label">Paciente</label>

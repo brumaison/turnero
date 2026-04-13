@@ -20,6 +20,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
 </head>
 <body>
+    <?php 
+    if (empty($activePage)) $activePage = '';
+    if (empty($activeSubPage)) $activeSubPage = '';
+    //$activePage = "";
+    //$activeSubPage = "";
+    ?>
     <div class="page">
         <!-- Sidebar -->
         <aside class="navbar navbar-vertical navbar-expand-lg navbar-overlap" data-bs-theme="dark">
