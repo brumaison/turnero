@@ -66,3 +66,10 @@ if (!function_exists('config')) {
         return $config[$key] ?? $default;
     }
 }
+if (!function_exists('carbon_date')) {
+    function carbon_date($fecha = null) {
+        $c = \Carbon\Carbon::parse($fecha);
+        $c->locale('es');  // ← Forzar locale en cada llamada
+        return $c;
+    }
+}

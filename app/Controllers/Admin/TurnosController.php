@@ -1,30 +1,31 @@
 <?php
 namespace App\Controllers\Admin;
 
+use App\Core\Controller;
 use App\Core\View;
 use App\Core\Flash;
 use App\Models\Turno;
 use App\Models\Paciente;
 use App\Models\Profesional;
 use App\Models\Agenda;
+use Carbon\Carbon;
 
-class TurnosController {
-    
-    // GET /admin/turnos → Lista con filtros
+class TurnosController extends Controller {
+
     public function index() {
         $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d');
         $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
         $profesional_id = $_GET['profesional_id'] ?? null;
         $estado_id = $_GET['estado_id'] ?? null;
-        
+
         $turnos = Turno::getRango($fecha_inicio, $fecha_fin, $profesional_id);
-        
+
         if ($estado_id) {
             $turnos = array_filter($turnos, fn($t) => $t['estado_id'] == $estado_id);
         }
-        
+
         $profesionales = Profesional::todos();
-        
+
         View::render('admin/turnos/index', [
             'turnos' => $turnos,
             'profesionales' => $profesionales,
@@ -34,12 +35,11 @@ class TurnosController {
         ]);
     }
 
-    // GET /admin/turnos/create → Muestra el formulario
     public function create() {
         $profesionales = Profesional::todos();
         $consultorios = Turno::getConsultorios();
         $fecha_seleccionada = $_GET['fecha'] ?? null;
-        
+
         View::render('admin/turnos/create', [
             'profesionales' => $profesionales,
             'consultorios' => $consultorios,
@@ -49,36 +49,62 @@ class TurnosController {
         ]);
     }
 
-    // POST /admin/turnos/store → Guarda y redirige
     public function store() {
-        csrf_verify();
+        if (!csrf_verify()) {
+            Flash::error('Token de seguridad inválido');
+            redirect('/admin/turnos/create');
+            return;
+        }
+        
         if (empty($_POST['fecha_hora']) || strtotime($_POST['fecha_hora']) < time()) {
             Flash::error('La fecha debe ser futura');
             redirect('/admin/turnos/create');
+            return;
         }
-        
-        $duracion = $_POST['duracion_minutos'] ?? 30;
-        
-        // Validar agenda: warning si no hay configuración, error si está ocupada
-        $tiene_agenda = Agenda::getByProfesional($_POST['profesional_id']);
-        $dia_semana = date('N', strtotime($_POST['fecha_hora']));
 
-        $agenda_dia = array_filter($tiene_agenda, fn($a) => $a['dia_semana'] == $dia_semana && $a['activo']);
+        $profesional_id = (int)$_POST['profesional_id'];
+        $fecha_hora = $_POST['fecha_hora'];
+        $duracion = (int)($_POST['duracion_minutos'] ?? 30);
+        $es_extraordinario = isset($_POST['extraordinario']) && $_POST['extraordinario'] == '1';
+        $confirmacion_extra = isset($_POST['extraordinario_check']) && $_POST['extraordinario_check'] == '1';
 
-        if (empty($agenda_dia)) {
-            Flash::warning('El profesional no tiene agenda configurada para ese día. ¿Continuar igual?');
-        } elseif (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
-            Flash::error('Horario no disponible en la agenda del profesional');
-            redirect('/admin/turnos/create');
+        if (!$es_extraordinario) {
+            $dia_semana = (int)date('N', strtotime($fecha_hora));
+            $agenda_config = Agenda::getByProfesionalYDia($profesional_id, $dia_semana);
+            
+            if (!$agenda_config) {
+                Flash::error('No hay agenda configurada para ese día. Usá "Turno Extraordinario" si es necesario.');
+                redirect('/admin/turnos/create');
+                return;
+            }
+
+            $hora_turno = date('H:i:s', strtotime($fecha_hora));
+            $hora_fin_turno = date('H:i:s', strtotime($fecha_hora . " +$duracion minutes"));
+
+            if ($hora_turno < $agenda_config['hora_inicio'] || $hora_fin_turno > $agenda_config['hora_fin']) {
+                Flash::error('Horario fuera de agenda. Usá "Turno Extraordinario" si es necesario.');
+                redirect('/admin/turnos/create');
+                return;
+            }
+        } else {
+            if (!$confirmacion_extra) {
+                Flash::error('Debés confirmar el turno extraordinario');
+                redirect('/admin/turnos/create');
+                return;
+            }
+            Flash::warning('Turno extraordinario creado');
         }
-        
-        if (Turno::existeSuperposicion($_POST['profesional_id'], $_POST['fecha_hora'], $duracion)) {
-            Flash::error('Ese horario ya está ocupado');
-            redirect('/admin/turnos/create');
+
+        if (Turno::existeSuperposicion($profesional_id, $fecha_hora, $duracion)) {
+            if (!$es_extraordinario) {
+                Flash::error('Ese horario ya está ocupado');
+                redirect('/admin/turnos/create');
+                return;
+            }
         }
-        
+
         $paciente_id = $_POST['paciente_id'] ?? null;
-        
+
         if (empty($paciente_id) && !empty($_POST['nuevo_paciente_dni'])) {
             $paciente_id = Paciente::create([
                 'dni' => $_POST['nuevo_paciente_dni'],
@@ -91,18 +117,19 @@ class TurnosController {
         if (empty($paciente_id)) {
             Flash::error('Debe seleccionar o crear un paciente');
             redirect('/admin/turnos/create');
+            return;
         }
-        
+
         $data = [
             'paciente_id' => $paciente_id,
-            'profesional_id' => $_POST['profesional_id'] ?? null,
+            'profesional_id' => $profesional_id,
             'consultorio_id' => $_POST['consultorio_id'] ?? null,
-            'fecha_hora' => $_POST['fecha_hora'] ?? null,
+            'fecha_hora' => $fecha_hora,
             'observaciones' => $_POST['observaciones'] ?? '',
             'estado_id' => 1,
             'duracion_minutos' => $duracion,
         ];
-        
+
         if (Turno::create($data)) {
             Flash::success('Turno creado');
         } else {
@@ -111,17 +138,16 @@ class TurnosController {
         redirect('/admin/turnos');
     }
 
-    // 🔴 NUEVO: GET /admin/turnos/{id}/edit
     public function edit($id) {
         $turno = Turno::findById($id);
-        if (!$turno) { 
+        if (!$turno) {
             Flash::error('Turno no encontrado');
-            redirect('/admin/turnos'); 
-            return; 
+            redirect('/admin/turnos');
+            return;
         }
-        
+
         $paciente = Paciente::findById($turno['paciente_id']);
-        
+
         View::render('admin/turnos/edit', [
             'turno' => $turno,
             'paciente' => $paciente,
@@ -133,18 +159,21 @@ class TurnosController {
         ]);
     }
 
-    // 🔴 NUEVO: POST /admin/turnos/{id}/update
     public function update($id) {
-        csrf_verify();
-        $duracion = $_POST['duracion_minutos'] ?? 30;
+        if (!csrf_verify()) {
+            Flash::error('Token de seguridad inválido');
+            redirect("/admin/turnos/{$id}/edit");
+            return;
+        }
         
-        // Validar agenda si cambió horario/profesional
+        $duracion = $_POST['duracion_minutos'] ?? 30;
+
         if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion, $id)) {
             Flash::error('Horario no disponible en la agenda');
             redirect("/admin/turnos/{$id}/edit");
             return;
         }
-        
+
         $data = [
             'paciente_id' => $_POST['paciente_id'] ?? null,
             'profesional_id' => $_POST['profesional_id'] ?? null,
@@ -154,7 +183,7 @@ class TurnosController {
             'estado_id' => $_POST['estado_id'] ?? 1,
             'duracion_minutos' => $duracion,
         ];
-        
+
         if (Turno::update($id, $data)) {
             Flash::success('Turno actualizado');
         } else {
@@ -163,7 +192,6 @@ class TurnosController {
         redirect('/admin/turnos');
     }
 
-    // GET /admin/turnos/search-patient → JSON para autocomplete
     public function searchPatient() {
         header('Content-Type: application/json');
         $texto = $_GET['q'] ?? '';
@@ -171,7 +199,6 @@ class TurnosController {
         echo json_encode($pacientes);
     }
 
-    // GET /admin/turnos/calendar → Vista calendario
     public function calendar() {
         $profesionales = Profesional::todos();
         View::render('admin/turnos/calendar', [
@@ -181,62 +208,61 @@ class TurnosController {
         ]);
     }
 
-    // GET /admin/turnos/get-events → JSON para FullCalendar
     public function getEvents() {
         header('Content-Type: application/json');
-        
+
         $start = $_GET['start'] ?? date('Y-m-d');
         $end = $_GET['end'] ?? date('Y-m-d', strtotime('+30 days'));
         $profesional_id = $_GET['profesional_id'] ?? null;
-        
+
         $turnos = Turno::getRango($start, $end, $profesional_id);
-        
+
         $events = [];
         foreach ($turnos as $turno) {
             $events[] = [
                 'id' => $turno['id'],
                 'title' => ($turno['apellido'] ?? '') . ', ' . ($turno['nombre'] ?? '') . ' - ' . ($turno['profesional'] ?? ''),
-                'start' => date('c', strtotime($turno['fecha_hora'])), // 🔴 Fix timezone: formato ISO 8601
+                'start' => date('c', strtotime($turno['fecha_hora'])),
                 'backgroundColor' => $this->getColorByEstado($turno['estado_id']),
                 'extendedProps' => [
                     'paciente' => $turno['apellido'] . ', ' . $turno['nombre'],
                     'profesional' => $turno['profesional'],
-                    'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio', // 🔴 Nombre para popover
+                    'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
                     'estado' => $turno['estado_id']
                 ]
             ];
         }
-        
+
         echo json_encode($events);
     }
-    // GET /admin/turnos/available-slots → JSON con días y horarios disponibles
+
     public function availableSlots() {
         header('Content-Type: application/json');
-        
+
         $profesional_id = $_GET['profesional_id'] ?? null;
         $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-d');
         $dias_a_mostrar = 15;
-        
+
         if (!$profesional_id) {
             echo json_encode(['error' => 'Falta profesional_id']);
             return;
         }
-        
+
         $resultado = [];
-        
+
         for ($i = 0; $i < $dias_a_mostrar; $i++) {
             $fecha = date('Y-m-d', strtotime($fecha_desde . " +$i days"));
             $horarios = Agenda::getHorariosDisponibles($profesional_id, $fecha);
-            
+
             if (!empty($horarios)) {
                 $resultado[] = [
                     'fecha' => $fecha,
-                    'fecha_label' => date('l d/m', strtotime($fecha)),
+                    'fecha_label' => carbon_date($fecha)->translatedFormat('l d/m'),
                     'horarios' => $horarios
                 ];
             }
         }
-        
+
         echo json_encode($resultado);
     }
 

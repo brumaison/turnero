@@ -20,37 +20,37 @@ class Turno extends Model {
     }
 
     public static function getRango($fecha_inicio, $fecha_fin, $profesional_id = null) {
-    if ($profesional_id) {
-        $stmt = self::db()->prepare("
-            SELECT t.*, 
-                    p.nombre, p.apellido, p.dni, 
-                    pr.nombre as profesional,
-                    c.nombre as consultorio_nombre
-            FROM turnos t
-            JOIN pacientes p ON t.paciente_id = p.id
-            JOIN profesionales pr ON t.profesional_id = pr.id
-            LEFT JOIN consultorios c ON t.consultorio_id = c.id
-            WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
-            AND t.profesional_id = ?
-            ORDER BY t.fecha_hora ASC
-        ");
-        $stmt->execute([$fecha_inicio, $fecha_fin, $profesional_id]);
-    } else {
-        $stmt = self::db()->prepare("
-            SELECT t.*, 
-                    p.nombre, p.apellido, p.dni, 
-                    pr.nombre as profesional,
-                    c.nombre as consultorio_nombre
-            FROM turnos t
-            JOIN pacientes p ON t.paciente_id = p.id
-            JOIN profesionales pr ON t.profesional_id = pr.id
-            LEFT JOIN consultorios c ON t.consultorio_id = c.id
-            WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
-            ORDER BY t.fecha_hora ASC
-        ");
-        $stmt->execute([$fecha_inicio, $fecha_fin]);
-    }
-    return $stmt->fetchAll();
+        if ($profesional_id) {
+            $stmt = self::db()->prepare("
+                SELECT t.*, 
+                        p.nombre, p.apellido, p.dni, 
+                        pr.nombre as profesional,
+                        c.nombre as consultorio_nombre
+                FROM turnos t
+                JOIN pacientes p ON t.paciente_id = p.id
+                JOIN profesionales pr ON t.profesional_id = pr.id
+                LEFT JOIN consultorios c ON t.consultorio_id = c.id
+                WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
+                AND t.profesional_id = ?
+                ORDER BY t.fecha_hora ASC
+            ");
+            $stmt->execute([$fecha_inicio, $fecha_fin, $profesional_id]);
+        } else {
+            $stmt = self::db()->prepare("
+                SELECT t.*, 
+                        p.nombre, p.apellido, p.dni, 
+                        pr.nombre as profesional,
+                        c.nombre as consultorio_nombre
+                FROM turnos t
+                JOIN pacientes p ON t.paciente_id = p.id
+                JOIN profesionales pr ON t.profesional_id = pr.id
+                LEFT JOIN consultorios c ON t.consultorio_id = c.id
+                WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
+                ORDER BY t.fecha_hora ASC
+            ");
+            $stmt->execute([$fecha_inicio, $fecha_fin]);
+        }
+        return $stmt->fetchAll();
     }
 
     public static function findById($id) {
@@ -98,18 +98,39 @@ class Turno extends Model {
         return $stmt->fetchAll();
     }
 
-    public static function existeSuperposicion($profesional_id, $fecha_hora, $duracion_minutos = 30) {
-        // Calcular hora fin del turno
-        $datetime = new \DateTime($fecha_hora);
-        $hora_fin = date('Y-m-d H:i:s', strtotime($fecha_hora) + ($duracion_minutos * 60));
+    // 🔹 MEJORADO: Valida solapamiento real considerando duración
+    public static function existeSuperposicion($profesional_id, $fecha_hora, $duracion_minutos = 30, $excluir_turno_id = null) {
+        $nuevo_inicio = $fecha_hora;
+        $nuevo_fin = date('Y-m-d H:i:s', strtotime($fecha_hora . " +$duracion_minutos minutes"));
         
-        $stmt = self::db()->prepare("
+        $sql = "
             SELECT COUNT(*) FROM turnos 
-            WHERE profesional_id = :prof 
-            AND fecha_hora = :fecha
-            AND estado_id NOT IN (3, 4)
-        ");
-        $stmt->execute(['prof' => $profesional_id, 'fecha' => $fecha_hora]);
-        return $stmt->fetchColumn() > 0;
+            WHERE profesional_id = :profesional_id 
+            AND DATE(fecha_hora) = DATE(:nuevo_inicio)
+            AND estado_id NOT IN (3, 4, 5)
+        ";
+        
+        $params = [
+            'profesional_id' => $profesional_id,
+            'nuevo_inicio' => $nuevo_inicio
+        ];
+        
+        if ($excluir_turno_id) {
+            $sql .= " AND id != :excluir_id";
+            $params['excluir_id'] = $excluir_turno_id;
+        }
+        
+        $sql .= "
+            AND (
+                fecha_hora < :nuevo_fin 
+                AND DATE_ADD(fecha_hora, INTERVAL duracion_minutos MINUTE) > :nuevo_inicio
+            )
+        ";
+        
+        $params['nuevo_fin'] = $nuevo_fin;
+        
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
+        return (int)$stmt->fetchColumn() > 0;
     }
 }

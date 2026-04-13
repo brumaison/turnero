@@ -1,6 +1,9 @@
 <div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Nuevo Turno</h3>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="card-title mb-0">Nuevo Turno</h3>
+        <button type="button" class="btn btn-outline-warning btn-sm" id="btn-extraordinario">
+            ⚠️ Turno Extraordinario
+        </button>
     </div>
     <div class="card-body">
         
@@ -36,6 +39,35 @@
             </div>
         </div>
 
+        <!-- Paso 1.5: Formulario extraordinario (oculto por defecto) -->
+        <div id="step-extraordinario" class="d-none">
+            <div class="alert alert-warning">
+                <strong>⚠️ Turno Extraordinario</strong><br>
+                <small>Este turno se creará fuera de la agenda configurada. Requiere confirmación.</small>
+            </div>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label required">Profesional</label>
+                    <select class="form-select" id="extra_profesional" required>
+                        <option value="">Seleccionar...</option>
+                        <?php foreach ($profesionales as $p): ?>
+                        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label required">Fecha y Hora</label>
+                    <input type="datetime-local" class="form-control" id="extra_fecha_hora" required>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" id="btn-confirmar-extra">Continuar</button>
+                <button type="button" class="btn btn-secondary" id="btn-cancelar-extra">Volver</button>
+            </div>
+        </div>
+
         <!-- Paso 2: Formulario de confirmación (oculto hasta seleccionar horario) -->
         <div id="step-formulario" class="d-none">
             <form method="POST" action="<?= baseUrl('/admin/turnos/store') ?>" id="form-turno">
@@ -45,10 +77,22 @@
                 <input type="hidden" name="profesional_id" id="form_profesional_id">
                 <input type="hidden" name="fecha_hora" id="form_fecha_hora">
                 <input type="hidden" name="consultorio_id" id="form_consultorio_id">
+                <input type="hidden" name="extraordinario" id="form_extraordinario" value="0">
                 
                 <div class="alert alert-info mb-3">
                     <strong>Turno seleccionado:</strong><br>
                     <span id="resumen-turno"></span>
+                </div>
+
+                <!-- Alerta extraordinario -->
+                <div id="box-extraordinario" class="alert alert-warning d-none mb-3">
+                    <small>⚠️ Este horario está fuera de la agenda configurada</small>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="check_extraordinario" name="extraordinario_check" value="1">
+                        <label class="form-check-label" for="check_extraordinario">
+                            Confirmo que deseo crear este turno extraordinario
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Toggle Paciente -->
@@ -114,7 +158,7 @@
     </div>
 </div>
 
-<!-- Select2 CSS (ya cargado en header, pero por si acaso) -->
+<!-- Select2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
 
@@ -123,7 +167,52 @@ $(document).ready(function() {
     // Select2
     $('.form-select').select2({ theme: 'bootstrap-5' });
 
-    // Cargar profesionales por consultorio
+    // Mínimo fecha para extraordinario (ahora)
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('extra_fecha_hora').min = now.toISOString().slice(0,16);
+
+    // Botón extraordinario → mostrar form manual
+    $('#btn-extraordinario').on('click', function() {
+        $('#step-disponibilidad').addClass('d-none');
+        $('#step-extraordinario').removeClass('d-none');
+        $('#step-formulario').addClass('d-none');
+    });
+
+    // Cancelar extraordinario → volver a normal
+    $('#btn-cancelar-extra').on('click', function() {
+        $('#step-extraordinario').addClass('d-none');
+        $('#step-disponibilidad').removeClass('d-none');
+    });
+
+    // Confirmar extraordinario → ir a formulario
+    $('#btn-confirmar-extra').on('click', function() {
+        const profesionalId = $('#extra_profesional').val();
+        const fechaHora = $('#extra_fecha_hora').val();
+        
+        if (!profesionalId || !fechaHora) {
+            alert('⚠️ Completá profesional y fecha/hora');
+            return;
+        }
+        
+        const profesionalNombre = $('#extra_profesional option:selected').text();
+        const fechaObj = new Date(fechaHora);
+        const fechaLabel = fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'numeric' });
+        const horaLabel = fechaObj.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+        
+        $('#form_profesional_id').val(profesionalId);
+        $('#form_fecha_hora').val(fechaObj.toISOString().slice(0,19).replace('T', ' '));
+        $('#form_extraordinario').val('1');
+        $('#resumen-turno').text(`${profesionalNombre} - ${fechaLabel} ${horaLabel}`);
+        
+        // Mostrar alerta de extraordinario
+        $('#box-extraordinario').removeClass('d-none');
+        
+        $('#step-extraordinario').addClass('d-none');
+        $('#step-formulario').removeClass('d-none');
+    });
+
+    // Cargar profesionales por consultorio (normal)
     $('#filtro_consultorio').on('change', function() {
         const consultorioId = $(this).val();
         $('#select_profesional option').each(function() {
@@ -134,7 +223,7 @@ $(document).ready(function() {
         $('#contenedor-dias').addClass('d-none');
     });
 
-    // Cargar días disponibles al seleccionar profesional
+    // Cargar días disponibles al seleccionar profesional (normal)
     $('#select_profesional').on('change', function() {
         const profesionalId = $(this).val();
         const consultorioId = $(this).find('option:selected').data('consultorio');
@@ -144,7 +233,6 @@ $(document).ready(function() {
             return;
         }
         
-        // Pre-seleccionar consultorio si tiene default
         if (consultorioId) {
             $('#form_consultorio_id').val(consultorioId);
         }
@@ -174,7 +262,7 @@ $(document).ready(function() {
         });
     });
 
-    // Click en horario → mostrar formulario
+    // Click en horario normal → mostrar formulario
     $(document).on('click', '.slot-horario', function() {
         const fecha = $(this).data('fecha');
         const hora = $(this).data('hora');
@@ -183,7 +271,11 @@ $(document).ready(function() {
         
         $('#form_profesional_id').val($('#select_profesional').val());
         $('#form_fecha_hora').val(`${fecha} ${hora}:00`);
+        $('#form_extraordinario').val('0');
         $('#resumen-turno').text(`${profesionalNombre} - ${label}`);
+        
+        // Ocultar alerta extraordinario (es turno normal)
+        $('#box-extraordinario').addClass('d-none');
         
         $('#step-disponibilidad').addClass('d-none');
         $('#step-formulario').removeClass('d-none');
@@ -193,6 +285,18 @@ $(document).ready(function() {
     $('#btn-volver').on('click', function() {
         $('#step-formulario').addClass('d-none');
         $('#step-disponibilidad').removeClass('d-none');
+    });
+
+    // Validar extraordinario al enviar
+    $('#form-turno').on('submit', function(e) {
+        const esExtraordinario = $('#form_extraordinario').val() == '1';
+        const checkExtra = $('#check_extraordinario');
+        
+        if (esExtraordinario && !checkExtra.is(':checked')) {
+            e.preventDefault();
+            alert('⚠️ Debés confirmar "turno extraordinario" para continuar');
+            checkExtra.focus();
+        }
     });
 
     // Toggle paciente
@@ -212,7 +316,7 @@ $(document).ready(function() {
         }
     });
 
-    // Autocomplete pacientes (igual que antes)
+    // Autocomplete pacientes
     let timeout;
     $('#paciente').on('input', function() {
         clearTimeout(timeout);

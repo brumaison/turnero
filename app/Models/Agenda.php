@@ -16,14 +16,25 @@ class Agenda extends Model {
         return $stmt->fetchAll();
     }
 
-    public static function estaDisponible($profesional_id, $fecha_hora, $duracion_minutos = 30) {
-        // Obtener día de la semana (1=Lunes, 7=Domingo)
+    // 🔹 NUEVO: Obtener agenda configurada para un profesional en un día específico
+    public static function getByProfesionalYDia($profesional_id, $dia_semana) {
+        $stmt = self::db()->prepare("
+            SELECT * FROM agendas 
+            WHERE profesional_id = ? 
+            AND dia_semana = ? 
+            AND activo = 1
+            LIMIT 1
+        ");
+        $stmt->execute([$profesional_id, $dia_semana]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public static function estaDisponible($profesional_id, $fecha_hora, $duracion_minutos = 30, $excluir_turno_id = null) {
         $datetime = new \DateTime($fecha_hora);
-        $dia_semana = (int)$datetime->format('N'); // 1-7
+        $dia_semana = (int)$datetime->format('N');
         $hora = $datetime->format('H:i:s');
         $hora_fin_turno = date('H:i:s', strtotime($hora) + ($duracion_minutos * 60));
         
-        // Verificar si hay agenda configurada para ese día
         $stmt = self::db()->prepare("
             SELECT * FROM agendas 
             WHERE profesional_id = ? 
@@ -36,17 +47,24 @@ class Agenda extends Model {
         $agenda = $stmt->fetch();
         
         if (!$agenda) {
-            return false; // No hay agenda configurada para ese horario
+            return false;
         }
         
-        // Verificar que no haya turnos superpuestos
-        $stmt = self::db()->prepare("
+        $sql = "
             SELECT COUNT(*) FROM turnos 
             WHERE profesional_id = ? 
             AND fecha_hora = ?
-            AND estado_id NOT IN (3, 4) -- No contar cancelados o ausentes
-        ");
-        $stmt->execute([$profesional_id, $fecha_hora]);
+            AND estado_id NOT IN (3, 4)
+        ";
+        $params = [$profesional_id, $fecha_hora];
+        
+        if ($excluir_turno_id) {
+            $sql .= " AND id != ?";
+            $params[] = $excluir_turno_id;
+        }
+        
+        $stmt = self::db()->prepare($sql);
+        $stmt->execute($params);
         $turnos_existentes = $stmt->fetchColumn();
         
         return $turnos_existentes == 0;
@@ -56,7 +74,6 @@ class Agenda extends Model {
         $datetime = new \DateTime($fecha);
         $dia_semana = (int)$datetime->format('N');
         
-        // Obtener agenda del día
         $stmt = self::db()->prepare("
             SELECT * FROM agendas 
             WHERE profesional_id = ? 
@@ -67,10 +84,9 @@ class Agenda extends Model {
         $agendas = $stmt->fetchAll();
         
         if (empty($agendas)) {
-            return []; // No hay agenda ese día
+            return [];
         }
         
-        // Obtener turnos ya ocupados
         $stmt = self::db()->prepare("
             SELECT fecha_hora FROM turnos 
             WHERE profesional_id = ? 
@@ -80,7 +96,6 @@ class Agenda extends Model {
         $stmt->execute([$profesional_id, $fecha]);
         $turnos_ocupados = $stmt->fetchAll(\PDO::FETCH_COLUMN);
         
-        // Generar horarios disponibles
         $horarios = [];
         foreach ($agendas as $agenda) {
             $inicio = strtotime($agenda['hora_inicio']);
