@@ -51,6 +51,19 @@ class AuthController {
             $consultorios = $stmt->fetchAll(\PDO::FETCH_COLUMN);
             
             $_SESSION['user_consultorios'] = $consultorios; // Array [1, 2, 3]
+
+            // 5. Si es médico, buscar su profesional_id
+            if ($operador['role_slug'] === 'medico') {
+                $stmt = $db->prepare("
+                    SELECT id FROM profesionales 
+                    WHERE user_id = :user_id 
+                    LIMIT 1
+                ");
+                $stmt->execute(['user_id' => $operador['id']]);
+                $profesional = $stmt->fetch();
+                
+                $_SESSION['profesional_id'] = $profesional['id'] ?? null;
+            }
             
             redirect('/admin/turnos');
         } else {

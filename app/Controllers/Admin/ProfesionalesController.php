@@ -1,82 +1,117 @@
 <?php
 namespace App\Controllers\Admin;
 
+use App\Core\Controller;
 use App\Core\View;
+use App\Core\Flash;
 use App\Models\Profesional;
 use App\Models\Especialidad;
+use App\Models\Consultorio; 
 
-class ProfesionalesController {
+class ProfesionalesController extends Controller {
     
     public function index() {
         $profesionales = Profesional::todos();
+        
         View::render('admin/profesionales/index', [
-            'activePage' => 'profesionales',
-            'activeSubPage' => 'index',
             'profesionales' => $profesionales,
             'pageTitle' => 'Profesionales',
-            'activePage' => 'profesionales'
+            'activePage' => 'profesionales',
+            'activeSubPage' => 'index'
         ]);
     }
 
     public function create() {
         $especialidades = Especialidad::all();
-       // ProfesionalesController::create()
+        $consultorios = Consultorio::todos();  // ← Fetch
+        
         View::render('admin/profesionales/create', [
-            'activePage' => 'profesionales',
-            'activeSubPage' => 'create',
+            'especialidades' => $especialidades,
+            'consultorios' => $consultorios,
             'pageTitle' => 'Nuevo Profesional',
             'activePage' => 'profesionales',
-            'activeSubPage' => 'create',  // ← Nuevo
+            'activeSubPage' => 'create'
         ]);
     }
 
     public function store() {
-        Profesional::create([
+        csrf_verify();
+        
+        // Validación
+        if (empty($_POST['consultorio_default_id'])) {
+            Flash::error('Debe seleccionar un consultorio');
+            redirect('/admin/profesionales/create');
+            return;
+        }
+        
+        Profesional::createWithOperator([
+            'email' => $_POST['email'],
+            'password' => $_POST['password'],
             'nombre' => $_POST['nombre'],
-            'consultorio_default_id' => $_POST['consultorio_default_id'] ?? null,
+            'consultorio_default_id' => (int)$_POST['consultorio_default_id'],
             'duracion_default' => $_POST['duracion_default'] ?? 30,
             'especialidades' => $_POST['especialidades'] ?? []
         ]);
-        $_SESSION['success'] = 'Profesional creado';
+        
+        Flash::success('Profesional creado');
         redirect('/admin/profesionales');
     }
 
     public function edit($id) {
-        $profesional = Profesional::find($id);
+        $profesional = Profesional::findWithOperator($id);
         $especialidades = Especialidad::all();
         $profesional_especialidades = Profesional::getEspecialidades($id);
+        $consultorios = Consultorio::todos();
         
         View::render('admin/profesionales/edit', [
-            'activePage' => 'profesionales',
-            'activeSubPage' => 'edit',
             'profesional' => $profesional,
             'especialidades' => $especialidades,
+            'consultorios' => $consultorios,
             'profesional_especialidades' => array_column($profesional_especialidades, 'id'),
             'pageTitle' => 'Editar Profesional',
-            'activePage' => 'profesionales'
+            'activePage' => 'profesionales',
+            'activeSubPage' => 'edit'
         ]);
     }
 
     public function update($id) {
-        Profesional::update($id, [
+        csrf_verify();
+        
+        // Validación
+        if (empty($_POST['consultorio_default_id'])) {
+            Flash::error('Debe seleccionar un consultorio');
+            redirect("/admin/profesionales/{$id}/edit");
+            return;
+        }
+        
+        Profesional::updateWithOperator($id, [
+            'email' => $_POST['email'] ?? null,
+            'password' => $_POST['password'] ?? null,
             'nombre' => $_POST['nombre'],
-            'consultorio_default_id' => $_POST['consultorio_default_id'] ?? null,
+            'consultorio_default_id' => (int)$_POST['consultorio_default_id'],
             'duracion_default' => $_POST['duracion_default'] ?? 30,
             'especialidades' => $_POST['especialidades'] ?? []
         ]);
-        $_SESSION['success'] = 'Profesional actualizado';
+        
+        Flash::success('Profesional actualizado');
         redirect('/admin/profesionales');
     }
 
     public function destroy($id) {
         Profesional::delete($id);
-        $_SESSION['success'] = 'Profesional eliminado';
+        Flash::success('Profesional eliminado');
         redirect('/admin/profesionales');
     }
 
-    // Ver agenda de un profesional
     public function agenda($id) {
         $profesional = Profesional::find($id);
+        
+        if (!$profesional) {
+            Flash::error('Profesional no encontrado');
+            redirect('/admin/profesionales');
+            return;
+        }
+        
         $agendas = \App\Models\Agenda::getByProfesional($id);
         
         View::render('admin/profesionales/agenda', [
