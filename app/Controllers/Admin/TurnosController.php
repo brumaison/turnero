@@ -160,6 +160,15 @@ class TurnosController extends Controller {
             return;
         }
 
+        // Si es médico, verificar que el turno es SUYO
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            if ($turno['profesional_id'] != $_SESSION['profesional_id']) {
+                Flash::error('No tenés permiso para editar este turno');
+                redirect('/admin/turnos');
+                return;
+            }
+        }
+
         $paciente = Paciente::findById($turno['paciente_id']);
 
         View::render('admin/turnos/edit', [
@@ -175,6 +184,21 @@ class TurnosController extends Controller {
 
     public function update($id) {
         csrf_verify();
+
+        // Validar pertenencia si es médico
+        $turno = Turno::findById($id);
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            if ($turno['profesional_id'] != $_SESSION['profesional_id']) {
+                Flash::error('No tenés permiso para actualizar este turno');
+                redirect('/admin/turnos');
+                return;
+            }
+        }
+        
+        // También forzar profesional_id si es médico (seguridad extra)
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            $_POST['profesional_id'] = $_SESSION['profesional_id'];
+        }
         $duracion = $_POST['duracion_minutos'] ?? 30;
 
         if (!Agenda::estaDisponible($_POST['profesional_id'], $_POST['fecha_hora'], $duracion, $id)) {
