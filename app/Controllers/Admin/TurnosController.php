@@ -18,6 +18,11 @@ class TurnosController extends Controller {
         $profesional_id = $_GET['profesional_id'] ?? null;
         $estado_id = $_GET['estado_id'] ?? null;
 
+        // Si es médico, forzar su profesional_id
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            $profesional_id = $_SESSION['profesional_id'] ?? null;
+        }
+
         $turnos = Turno::getRango($fecha_inicio, $fecha_fin, $profesional_id);
 
         if ($estado_id) {
@@ -40,8 +45,14 @@ class TurnosController extends Controller {
         $consultorios = Turno::getConsultorios();
         $fecha_seleccionada = $_GET['fecha'] ?? null;
 
+        // Si es médico, pre-seleccionar y bloquear
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            $profesional_id = $_SESSION['profesional_id'] ?? null;
+        }
+
         View::render('admin/turnos/create', [
             'profesionales' => $profesionales,
+            'profesional_id' => $profesional_id ?? null,  // ← Pasar al view
             'consultorios' => $consultorios,
             'fecha_seleccionada' => $fecha_seleccionada,
             'pageTitle' => 'Nuevo Turno',
@@ -51,6 +62,13 @@ class TurnosController extends Controller {
 
     public function store() {
         csrf_verify();
+
+        $profesional_id = (int)$_POST['profesional_id'];
+
+        // Si es médico, forzar su propio ID (seguridad)
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+        $profesional_id = $_SESSION['profesional_id'];
+        }
         
         if (empty($_POST['fecha_hora']) || strtotime($_POST['fecha_hora']) < time()) {
             Flash::error('La fecha debe ser futura');
@@ -58,7 +76,7 @@ class TurnosController extends Controller {
             return;
         }
 
-        $profesional_id = (int)$_POST['profesional_id'];
+        //$profesional_id = (int)$_POST['profesional_id'];
         $fecha_hora = $_POST['fecha_hora'];
         $duracion = (int)($_POST['duracion_minutos'] ?? 30);
         $es_extraordinario = isset($_POST['extraordinario']) && $_POST['extraordinario'] == '1';
@@ -192,6 +210,10 @@ class TurnosController extends Controller {
 
     public function calendar() {
         $profesionales = Profesional::todos();
+        // Si es médico, no mostrar selector de profesionales
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            $profesionales = null;  // O solo el suyo
+        }
         View::render('admin/turnos/calendar', [
             'profesionales' => $profesionales,
             'pageTitle' => 'Calendario de Turnos',
@@ -205,6 +227,11 @@ class TurnosController extends Controller {
         $start = $_GET['start'] ?? date('Y-m-d');
         $end = $_GET['end'] ?? date('Y-m-d', strtotime('+30 days'));
         $profesional_id = $_GET['profesional_id'] ?? null;
+
+        // Si es médico, forzar su profesional_id
+        if (($_SESSION['user_role_slug'] ?? '') === 'medico') {
+            $profesional_id = $_SESSION['profesional_id'] ?? null;
+        }
 
         $turnos = Turno::getRango($start, $end, $profesional_id);
 
