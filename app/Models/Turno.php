@@ -133,4 +133,9 @@ class Turno extends Model {
         $stmt->execute($params);
         return (int)$stmt->fetchColumn() > 0;
     }
+
+    public static function updateEstado($id, $estado_id) {
+        $stmt = self::db()->prepare("UPDATE turnos SET estado_id = :estado_id WHERE id = :id");
+        return $stmt->execute(['estado_id' => $estado_id, 'id' => $id]);
+    }
 }

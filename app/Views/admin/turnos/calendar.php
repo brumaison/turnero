@@ -67,6 +67,10 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
 
 <script>
+    const USER_ROLE = '<?= $_SESSION['user_role_slug'] ?? '' ?>';
+    const HOY = '<?= date('Y-m-d') ?>';
+</script>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
     const modalTurno = new bootstrap.Modal(document.getElementById('modalTurno'));
@@ -83,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         eventDidMount: function(info) {
             new bootstrap.Popover(info.el, {
                 title: info.event.title,
-                content: `${info.event.extendedProps.paciente}<br>${info.event.start.toLocaleString('es-AR')}`,
+                content: `${info.event.extendedProps.paciente} - ${info.event.start.toLocaleString('es-AR')}`,
                 trigger: 'hover',
                 placement: 'top',
                 container: 'body'
@@ -102,7 +106,27 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalEstado').textContent = estados[props.estado-1] || 'N/A';
             document.getElementById('modalEstado').className = 'badge bg-' + (colores[props.estado-1] || 'yellow-lt');
             document.getElementById('modalObservaciones').textContent = props.observaciones || 'Sin observaciones';
-            document.getElementById('btnEditar').href = '<?= baseUrl('/admin/turnos') ?>/' + info.event.id + '/edit';
+            
+            // 🔹 Link según rol + validación día actual para médico
+            const btnEditar = document.getElementById('btnEditar');
+            const fechaTurno = info.event.start.toISOString().split('T')[0];
+            
+            if (USER_ROLE === 'medico') {
+                if (fechaTurno === HOY && [1,2].includes(props.estado)) {
+                    btnEditar.href = '<?= baseUrl('/admin/consultas') ?>/' + info.event.id + '/atender';
+                    btnEditar.innerHTML = '<i class="ti ti-stethoscope"></i> Atender';
+                    btnEditar.className = 'btn btn-success';
+                    btnEditar.style.display = 'inline-block';
+                } else {
+                    btnEditar.style.display = 'none'; // No puede atender
+                }
+            } else {
+                // Admin/Recepción: siempre puede editar
+                btnEditar.href = '<?= baseUrl('/admin/turnos') ?>/' + info.event.id + '/edit';
+                btnEditar.innerHTML = '<i class="ti ti-edit"></i> Editar';
+                btnEditar.className = 'btn btn-primary';
+                btnEditar.style.display = 'inline-block';
+            }
             
             modalTurno.show();
         },

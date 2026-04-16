@@ -23,18 +23,6 @@ Sistema interno de gestión de turnos para Círculo Médico. Uso exclusivo para 
 - Consultas preparadas (PDO)
 - Sanitización de outputs
 
-## Estructura
-
-/app
-  /Controllers  → Lógica de las pantallas
-  /Core         → Router, View, Database
-  /Views        → Plantillas Tabler.io
-/config         → Configuración de la app
-/public         → Document root
-
 ## Desarrollado por
 
 ByV Desarrollo Web | byv.desarrolloweb@gmail.com
-
-- Bruno Maisón (Backend Developer - Frontend Developer)
-- Verónica Fraccalvieri (Diseñadora Multimedia - Frontend Developer )

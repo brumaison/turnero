@@ -270,7 +270,8 @@ class TurnosController extends Controller {
                     'paciente' => $turno['apellido'] . ', ' . $turno['nombre'],
                     'profesional' => $turno['profesional'],
                     'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
-                    'estado' => $turno['estado_id']
+                    'estado' => $turno['estado_id'], 
+                    'observaciones' => $turno['observaciones']
                 ]
             ];
         }
