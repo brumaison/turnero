@@ -6,6 +6,7 @@ class Router {
     
     protected $middlewareAliases = [
         'auth' => \App\Core\Middleware\AuthMiddleware::class,
+        'role' => \App\Core\Middleware\RoleMiddleware::class,  
     ];
 
     public function get($path, $handler, $middleware = []) {
@@ -60,9 +61,15 @@ class Router {
     protected function executeRoute($routeConfig, $params) {
         // Ejecutar middleware
         foreach ($routeConfig['middleware'] as $mw) {
-            $class = $this->middlewareAliases[$mw] ?? $mw;
+            // Parsear 'role:admin,recepcion' → ['role', ['admin','recepcion']]
+            $parts = explode(':', $mw);
+            $name = $parts[0];
+            $mwParams = isset($parts[1]) ? explode(',', $parts[1]) : [];
+            
+            $class = $this->middlewareAliases[$name] ?? $name;
             $instance = new $class();
-            if (!$instance->handle()) {
+            
+            if (!$instance->handle($mwParams)) {  // ← Pasar params
                 return;
             }
         }

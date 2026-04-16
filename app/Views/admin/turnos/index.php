@@ -22,6 +22,7 @@
                 <label class="form-label small">Hasta</label>
                 <input type="date" class="form-control form-control-sm" name="fecha_fin" value="<?= $filtros['fecha_fin'] ?? date('Y-m-d') ?>">
             </div>
+            <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
             <div class="col-md-3">
                 <label class="form-label small">Profesional</label>
                 <select class="form-select form-select-sm" name="profesional_id">
@@ -33,6 +34,7 @@
                     <?php endforeach; ?>
                 </select>
             </div>
+            <?php endif; ?>
             <div class="col-md-3 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary btn-sm w-100">
                     <i class="ti ti-filter"></i> Filtrar

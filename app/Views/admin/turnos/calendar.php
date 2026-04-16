@@ -4,6 +4,7 @@
 <div class="card">
     <div class="card-header">
         <h3 class="card-title"><?= $pageTitle ?></h3>
+        <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
         <div class="card-actions">
             <select class="form-select" id="filtro_profesional" style="min-width:200px">
                 <option value="">Todos los profesionales</option>
@@ -12,6 +13,7 @@
                 <?php endforeach; ?>
             </select>
         </div>
+        <?php endif; ?>
     </div>
     <div class="card-body">
         <div id="calendar"></div>
@@ -78,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
         
-        // Hover → Tooltip informativo
         eventDidMount: function(info) {
             new bootstrap.Popover(info.el, {
                 title: info.event.title,
@@ -89,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         },
         
-        // Click → Modal con acciones
         eventClick: function(info) {
             const props = info.event.extendedProps;
             const estados = ['Pendiente','Confirmado','Cancelado','Ausente','Realizado'];
@@ -108,21 +108,21 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         
         events: function(fetchInfo, successCallback) {
-            const profesionalId = document.getElementById('filtro_profesional').value;
+            const filtro = document.getElementById('filtro_profesional');
+            const profesionalId = filtro ? filtro.value : '';
             fetch('<?= baseUrl('/admin/turnos/get-events') ?>?start=' + fetchInfo.startStr + '&end=' + fetchInfo.endStr + (profesionalId ? '&profesional_id=' + profesionalId : ''))
                 .then(response => response.json())
                 .then(data => successCallback(data));
         },
-        
-        /*dateClick: function(info) {
-            window.location.href = '<?= baseUrl('/admin/turnos/create') ?>?fecha=' + info.dateStr;
-        }*/
     });
     
     calendar.render();
     
-    document.getElementById('filtro_profesional').addEventListener('change', function() {
-        calendar.refetchEvents();
-    });
+    const filtroProfesional = document.getElementById('filtro_profesional');
+    if (filtroProfesional) {
+        filtroProfesional.addEventListener('change', function() {
+            calendar.refetchEvents();
+        });
+    }
 });
 </script>

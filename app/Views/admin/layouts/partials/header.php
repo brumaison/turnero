@@ -42,52 +42,54 @@
                 </h1>
                 <div class="collapse navbar-collapse" id="sidebar-menu">
                     <ul class="navbar-nav pt-lg-3">
-                        <!-- Turnos -->
+                        <!-- Turnos (SIEMPRE visible) -->
                         <li class="nav-item dropdown <?= $activePage === 'turnos' ? 'show' : '' ?>">
                             <a class="nav-link dropdown-toggle <?= in_array($activePage, ['turnos']) ? 'active' : '' ?>" 
-                               href="#" data-bs-toggle="dropdown">
+                            href="#" data-bs-toggle="dropdown">
                                 <span class="nav-link-icon"><i class="ti ti-calendar"></i></span>
                                 <span class="nav-link-title">Turnos</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'turnos' ? 'show' : '' ?>">
                                 <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/turnos') ?>">Lista</a>
+                                href="<?= baseUrl('/admin/turnos') ?>">Lista</a>
                                 <a class="dropdown-item <?= $activeSubPage === 'calendar' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/turnos/calendar') ?>">Calendario</a>
+                                href="<?= baseUrl('/admin/turnos/calendar') ?>">Calendario</a>
                                 <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/turnos/create') ?>">Nuevo Turno</a>
+                                href="<?= baseUrl('/admin/turnos/create') ?>">Nuevo Turno</a>
                             </div>
                         </li>
 
-                        <!-- Profesionales -->
+                        <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
+                        <!-- Profesionales (solo admin/recepcion) -->
                         <li class="nav-item dropdown <?= $activePage === 'profesionales' ? 'show' : '' ?>">
                             <a class="nav-link dropdown-toggle <?= in_array($activePage, ['profesionales']) ? 'active' : '' ?>" 
-                               href="#" data-bs-toggle="dropdown">
+                            href="#" data-bs-toggle="dropdown">
                                 <span class="nav-link-icon"><i class="ti ti-user-circle"></i></span>
                                 <span class="nav-link-title">Profesionales</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'profesionales' ? 'show' : '' ?>">
                                 <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/profesionales') ?>">Lista</a>
+                                href="<?= baseUrl('/admin/profesionales') ?>">Lista</a>
                                 <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/profesionales/create') ?>">Nuevo</a>
+                                href="<?= baseUrl('/admin/profesionales/create') ?>">Nuevo</a>
                             </div>
                         </li>
 
-                        <!-- Especialidades -->
+                        <!-- Especialidades (solo admin/recepcion) -->
                         <li class="nav-item dropdown <?= $activePage === 'especialidades' ? 'show' : '' ?>">
                             <a class="nav-link dropdown-toggle <?= in_array($activePage, ['especialidades']) ? 'active' : '' ?>" 
-                               href="#" data-bs-toggle="dropdown">
+                            href="#" data-bs-toggle="dropdown">
                                 <span class="nav-link-icon"><i class="ti ti-stethoscope"></i></span>
                                 <span class="nav-link-title">Especialidades</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'especialidades' ? 'show' : '' ?>">
                                 <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/especialidades') ?>">Lista</a>
+                                href="<?= baseUrl('/admin/especialidades') ?>">Lista</a>
                                 <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
-                                   href="<?= baseUrl('/admin/especialidades/create') ?>">Nueva</a>
+                                href="<?= baseUrl('/admin/especialidades/create') ?>">Nueva</a>
                             </div>
                         </li>
+                        <?php endif; ?>
                     </ul>
                 </div>
             </div>
