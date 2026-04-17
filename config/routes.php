@@ -5,6 +5,7 @@ use App\Controllers\Admin\EspecialidadesController;
 use App\Controllers\Admin\ProfesionalesController;
 use App\Controllers\Admin\AgendasController;
 use App\Controllers\Admin\ConsultasController;
+use App\Controllers\Admin\PacientesController;
 
 return function($router) {
     // Públicas
@@ -73,4 +74,17 @@ return function($router) {
     $router->get('/admin/consultas/{id}/atender', [ConsultasController::class, 'atender'], ['auth', 'role:medico']);
     $router->post('/admin/consultas/store', [ConsultasController::class, 'store'], ['auth', 'role:medico']);
     $router->get('/admin/consultas/{id}/ver', [ConsultasController::class, 'ver'], ['auth', 'role:medico']);
+
+
+    // === PACIENTES ===
+    // Lista e historial: todos los auth
+    $router->get('/admin/pacientes', [PacientesController::class, 'index'], ['auth']);
+    $router->get('/admin/pacientes/{id}/historial', [PacientesController::class, 'historial'], ['auth']);
+
+    // CRUD: solo admin/recepcion
+    $router->get('/admin/pacientes/create', [PacientesController::class, 'create'], ['auth', 'role:admin,recepcion']);
+    $router->post('/admin/pacientes/store', [PacientesController::class, 'store'], ['auth', 'role:admin,recepcion']);
+    $router->get('/admin/pacientes/{id}/edit', [PacientesController::class, 'edit'], ['auth', 'role:admin,recepcion']);
+    $router->post('/admin/pacientes/{id}/update', [PacientesController::class, 'update'], ['auth', 'role:admin,recepcion']);
+    $router->get('/admin/pacientes/{id}/destroy', [PacientesController::class, 'destroy'], ['auth', 'role:admin,recepcion']);
 };

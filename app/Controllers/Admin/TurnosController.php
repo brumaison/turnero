@@ -271,7 +271,8 @@ class TurnosController extends Controller {
                     'profesional' => $turno['profesional'],
                     'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
                     'estado' => $turno['estado_id'], 
-                    'observaciones' => $turno['observaciones']
+                    'observaciones' => $turno['observaciones'],
+                    'fecha_hora_formatted' => date('d/m/Y H:i', strtotime($turno['fecha_hora']))
                 ]
             ];
         }

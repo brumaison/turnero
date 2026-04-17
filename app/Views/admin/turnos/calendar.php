@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
         eventDidMount: function(info) {
             new bootstrap.Popover(info.el, {
                 title: info.event.title,
-                content: `${info.event.extendedProps.paciente} - ${info.event.start.toLocaleString('es-AR')}`,
+                content: `${info.event.extendedProps.paciente} - ${info.event.extendedProps.fecha_hora_formatted}`,
                 trigger: 'hover',
                 placement: 'top',
                 container: 'body'
@@ -102,10 +102,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modalTurnoId').value = info.event.id;
             document.getElementById('modalPaciente').textContent = props.paciente || 'N/A';
             document.getElementById('modalProfesional').textContent = props.profesional || 'N/A';
-            document.getElementById('modalFecha').textContent = info.event.start.toLocaleString('es-AR');
+            document.getElementById('modalFecha').textContent = info.event.extendedProps.fecha_hora_formatted;
             document.getElementById('modalEstado').textContent = estados[props.estado-1] || 'N/A';
             document.getElementById('modalEstado').className = 'badge bg-' + (colores[props.estado-1] || 'yellow-lt');
-            document.getElementById('modalObservaciones').textContent = props.observaciones || 'Sin observaciones';
+            document.getElementById('modalObservaciones').textContent = info.event.extendedProps.observaciones || 'Sin observaciones';
             
             // 🔹 Link según rol + validación día actual para médico
             const btnEditar = document.getElementById('btnEditar');

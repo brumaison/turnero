@@ -90,6 +90,22 @@
                             </div>
                         </li>
                         <?php endif; ?>
+                        <!-- Pacientes (todos los roles auth) -->
+                        <li class="nav-item dropdown <?= $activePage === 'pacientes' ? 'show' : '' ?>">
+                            <a class="nav-link dropdown-toggle <?= in_array($activePage, ['pacientes']) ? 'active' : '' ?>" 
+                            href="#" data-bs-toggle="dropdown">
+                                <span class="nav-link-icon"><i class="ti ti-users"></i></span>
+                                <span class="nav-link-title">Pacientes</span>
+                            </a>
+                            <div class="dropdown-menu <?= $activePage === 'pacientes' ? 'show' : '' ?>">
+                                <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                href="<?= baseUrl('/admin/pacientes') ?>">Lista</a>
+                                <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
+                                <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                href="<?= baseUrl('/admin/pacientes/create') ?>">Nuevo</a>
+                                <?php endif; ?>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>
