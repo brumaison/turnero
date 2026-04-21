@@ -26,13 +26,13 @@
             <!-- Diagnóstico -->
             <div class="mb-3">
                 <label class="form-label">Diagnóstico</label>
-                <textarea name="diagnostico" class="form-control" rows="3" placeholder="Diagnóstico principal..."></textarea>
+                <textarea name="diagnostico" class="form-control" rows="3" placeholder="Diagnóstico principal..." required></textarea>
             </div>
 
             <!-- Notas de la consulta -->
             <div class="mb-3">
                 <label class="form-label">Notas de la Consulta</label>
-                <textarea name="notas" class="form-control" rows="5" placeholder="Observaciones, tratamiento indicado, etc..."></textarea>
+                <textarea name="notas" class="form-control" rows="5" placeholder="Observaciones, tratamiento indicado, etc..." required></textarea>
                 <small class="text-muted">Estas notas son parte de la historia clínica del paciente</small>
             </div>
 

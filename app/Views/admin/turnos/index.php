@@ -91,23 +91,33 @@
                             <span class="badge bg-<?= $e['class'] ?>"><?= $e['label'] ?></span>
                         </td>
                         <td class="text-end">
-                            <?php if (($_SESSION['user_role_slug'] ?? '') === 'medico'): ?>
-                                <!-- Médico: Atender consulta (solo si es del día y pendiente/confirmado) -->
-                                <?php if (date('Y-m-d', strtotime($t['fecha_hora'])) === date('Y-m-d') && in_array($t['estado_id'], [1,2])): ?>
-                                    <a href="<?= baseUrl('/admin/consultas/' . $t['id'] . '/atender') ?>" class="btn btn-success btn-sm" title="Atender">
-                                        <i class="ti ti-stethoscope"></i>
-                                    </a>
-                                <?php endif; ?>
-                            <?php else: ?>
-                                <!-- Admin/Recepción: Editar turno -->
-                                <a href="<?= baseUrl('/admin/turnos/' . $t['id'] . '/edit') ?>" class="btn btn-primary btn-sm" title="Editar">
-                                    <i class="ti ti-edit"></i>
+                        <?php if (($_SESSION['user_role_slug'] ?? '') === 'medico'): ?>
+                            
+                            <!-- Atender (solo si es del día y pendiente/confirmado) -->
+                            <?php if (date('Y-m-d', strtotime($t['fecha_hora'])) === date('Y-m-d') && in_array($t['estado_id'], [1,2])): ?>
+                                <a href="<?= baseUrl('/admin/consultas/' . $t['id'] . '/atender') ?>" class="btn btn-success btn-sm" title="Atender">
+                                    <i class="ti ti-stethoscope"></i>
                                 </a>
-                                <button class="btn btn-danger btn-sm" onclick="cancelarTurno(<?= $t['id'] ?>)" title="Cancelar">
-                                    <i class="ti ti-x"></i>
-                                </button>
                             <?php endif; ?>
-                        </td>
+                            
+                            <!-- 🔹 Ver historial (SIEMPRE visible para médico) -->
+                            <a href="<?= baseUrl('/admin/pacientes/' . $t['paciente_id'] . '/historial') ?>" 
+                            class="btn btn-sm btn-info" 
+                            title="Ver Historial Clínico"
+                            target="_blank">
+                                <i class="ti ti-file-invoice"></i>
+                            </a>
+                            
+                        <?php else: ?>
+                            <!-- Admin/Recepción -->
+                            <a href="<?= baseUrl('/admin/turnos/' . $t['id'] . '/edit') ?>" class="btn btn-primary btn-sm" title="Editar">
+                                <i class="ti ti-edit"></i>
+                            </a>
+                            <button class="btn btn-danger btn-sm" onclick="cancelarTurno(<?= $t['id'] ?>)" title="Cancelar">
+                                <i class="ti ti-x"></i>
+                            </button>
+                        <?php endif; ?>
+                    </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

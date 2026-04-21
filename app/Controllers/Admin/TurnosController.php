@@ -268,6 +268,7 @@ class TurnosController extends Controller {
                 'backgroundColor' => $this->getColorByEstado($turno['estado_id']),
                 'extendedProps' => [
                     'paciente' => $turno['apellido'] . ', ' . $turno['nombre'],
+                    'paciente_id' => $turno['paciente_id'],
                     'profesional' => $turno['profesional'],
                     'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
                     'estado' => $turno['estado_id'], 

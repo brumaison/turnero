@@ -52,11 +52,14 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <a href="#" id="btnEditar" class="btn btn-primary">
-                    <i class="ti ti-edit"></i> Editar
-                </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
+            <a href="#" id="btnHistorial" class="btn btn-info">
+                <i class="ti ti-file-invoice"></i> Ver Historial
+            </a>
+            <a href="#" id="btnEditar" class="btn btn-primary">
+                <i class="ti ti-edit"></i> Editar
+            </a>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
         </div>
     </div>
 </div>
@@ -99,7 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const estados = ['Pendiente','Confirmado','Cancelado','Ausente','Realizado'];
             const colores = ['yellow-lt','green-lt','red-lt','gray-lt','blue-lt'];
             
-            document.getElementById('modalTurnoId').value = info.event.id;
+            document.getElementById('modalTurnoId').value = info.event.id;            
+            document.getElementById('btnHistorial').href = '<?= baseUrl('/admin/pacientes') ?>/' + props.paciente_id + '/historial';
             document.getElementById('modalPaciente').textContent = props.paciente || 'N/A';
             document.getElementById('modalProfesional').textContent = props.profesional || 'N/A';
             document.getElementById('modalFecha').textContent = info.event.extendedProps.fecha_hora_formatted;
