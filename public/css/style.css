@@ -1,0 +1,44 @@
+/* ============================================
+   ICONOS - Tamaño base (cambiar default a lg)
+   ============================================ */
+.ti {
+    font-size: 1.25rem !important; /* 20px = lg por defecto */
+}
+
+/* ============================================
+   ICONOS - Tamaños relativos (ajustados)
+   ============================================ */
+.ti-2xs { font-size: 0.5rem !important; }   /* 8px */
+.ti-xs  { font-size: 0.625rem !important; } /* 10px */
+.ti-sm  { font-size: 0.75rem !important; }  /* 12px */
+.ti-lg  { font-size: 1.25rem !important; }  /* 20px (igual que default) */
+.ti-xl  { font-size: 1.5rem !important; }   /* 24px */
+.ti-2xl { font-size: 2rem !important; }     /* 32px */
+.ti-3xl { font-size: 3rem !important; }     /* 48px */
+/* ============================================
+   ICONOS - Utilidades extra
+   ============================================ */
+.ti-fw { text-align: center; width: 1.25em; } /* Fixed width */
+.ti-spin { animation: ti-spin 2s infinite linear; } /* Rotar */
+
+@keyframes ti-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ============================================
+   FUENTE - Inter (sobreescribe Tabler CDN)
+   ============================================ */
+body, .navbar, .page, h1, h2, h3, h4, h5, h6, .btn, .form-control {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+/* ============================================
+   SIDEBAR - Active states (opcional)
+   ============================================ */
+.navbar-vertical .dropdown-menu .dropdown-item.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    font-weight: 600;
+}
+
+.fc-event { cursor: pointer; }

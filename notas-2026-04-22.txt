@@ -1,0 +1,11 @@
+ver turnos por especialidad
+
+ver turnos disponibles y no disponibles
+
+turno extraordinario
+
+datos pacientes
+
+obra social/prepaga/particular
+
+informes/reportes
