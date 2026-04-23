@@ -70,9 +70,11 @@ class Turno extends Model {
     }
 
     public static function create($data) {
+        //var_dump($data);
+        //exit;
         $stmt = self::db()->prepare("
-            INSERT INTO turnos (paciente_id, profesional_id, consultorio_id, fecha_hora, observaciones, estado_id, duracion_minutos)
-            VALUES (:paciente_id, :profesional_id, :consultorio_id, :fecha_hora, :observaciones, :estado_id, :duracion_minutos)
+            INSERT INTO turnos (paciente_id, profesional_id, consultorio_id, fecha_hora, observaciones, estado_id, duracion_minutos, sobreturno)
+            VALUES (:paciente_id, :profesional_id, :consultorio_id, :fecha_hora, :observaciones, :estado_id, :duracion_minutos, :sobreturno)
         ");
         return $stmt->execute($data);
     }
@@ -86,7 +88,8 @@ class Turno extends Model {
                 fecha_hora = :fecha_hora, 
                 observaciones = :observaciones, 
                 estado_id = :estado_id,
-                duracion_minutos = :duracion_minutos
+                duracion_minutos = :duracion_minutos,
+                sobreturno = :sobreturno
             WHERE id = :id
         ");
         $data['id'] = $id;
