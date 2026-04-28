@@ -36,6 +36,7 @@ class TurnosController extends Controller {
         View::render('admin/turnos/index', [
             'turnos' => $turnos,
             'profesionales' => $profesionales,
+            'estados' => Turno::getEstadosConColor(),
             'filtros' => compact('fecha_inicio', 'fecha_fin', 'profesional_id', 'estado_id'),
             'pageTitle' => 'Gestión de Turnos',
             'activePage' => 'turnos'
@@ -167,6 +168,7 @@ class TurnosController extends Controller {
             'paciente' => $paciente,
             'profesionales' => Profesional::todos(),
             'consultorios' => Turno::getConsultorios(),
+            'estados' => Turno::getEstadosConColor(),
             'pageTitle' => 'Editar Turno',
             'activePage' => 'turnos',
             'activeSubPage' => 'edit'
@@ -258,6 +260,7 @@ class TurnosController extends Controller {
         
         View::render('admin/turnos/calendar', [
             'profesionales' => $profesionales,
+            'estados' => Turno::getEstadosConColor(),
             'pageTitle' => 'Calendario de Turnos',
             'activePage' => 'turnos'
         ]);
@@ -273,20 +276,27 @@ class TurnosController extends Controller {
             : $_GET['profesional_id'] ?? null;
 
         $turnos = Turno::getRango($start, $end, $profesional_id);
+        $estados = Turno::getEstadosConColor();
 
-        $events = array_map(function($turno) {
+        // Crear mapa de colores por estado_id
+        $colores_por_estado = [];
+        foreach ($estados as $e) {
+            $colores_por_estado[$e['id']] = $e['color'];
+        }
+
+        $events = array_map(function($turno) use ($colores_por_estado) {
             return [
                 'id' => $turno['id'],
                 'title' => trim("{$turno['apellido']}, {$turno['nombre']} - {$turno['profesional']}"),
                 'start' => date('c', strtotime($turno['fecha_hora'])),
-                'backgroundColor' => $this->getColorByEstado($turno['estado_id']),
+                'backgroundColor' => $colores_por_estado[$turno['estado_id']] ?? '#17a2b8',  // ✅ USAR COLOR DB
                 'extendedProps' => [
                     'paciente' => "{$turno['apellido']}, {$turno['nombre']}",
                     'paciente_id' => $turno['paciente_id'],
                     'profesional' => $turno['profesional'],
                     'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
                     'estado' => $turno['estado_id'],
-                    'observaciones' => $turno['observaciones'],
+                    'observaciones' => $turno['observaciones'] ?? '',
                     'fecha_hora_formatted' => date('d/m/Y H:i', strtotime($turno['fecha_hora']))
                 ]
             ];

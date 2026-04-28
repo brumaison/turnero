@@ -64,11 +64,11 @@
             <div class="mb-3">
                 <label class="form-label">Estado</label>
                 <select name="estado_id" class="form-select" required>
-                    <option value="1" <?= $turno['estado_id'] == 1 ? 'selected' : '' ?>>Pendiente</option>
-                    <option value="2" <?= $turno['estado_id'] == 2 ? 'selected' : '' ?>>Confirmado</option>
-                    <option value="3" <?= $turno['estado_id'] == 3 ? 'selected' : '' ?>>Cancelado</option>
-                    <option value="4" <?= $turno['estado_id'] == 4 ? 'selected' : '' ?>>Ausente</option>
-                    <option value="5" <?= $turno['estado_id'] == 5 ? 'selected' : '' ?>>Realizado</option>
+                    <?php foreach ($estados as $e): ?>
+                    <option value="<?= $e['id'] ?>" <?= $e['id'] == $turno['estado_id'] ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($e['nombre']) ?>
+                    </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
 

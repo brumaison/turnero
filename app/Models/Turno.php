@@ -141,4 +141,9 @@ class Turno extends Model {
         $stmt = self::db()->prepare("UPDATE turnos SET estado_id = :estado_id WHERE id = :id");
         return $stmt->execute(['estado_id' => $estado_id, 'id' => $id]);
     }
+
+    public static function getEstadosConColor() {
+        $stmt = self::db()->query("SELECT id, nombre, color FROM estados_turno ORDER BY id");
+        return $stmt->fetchAll();
+    }
 }

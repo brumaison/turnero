@@ -59,16 +59,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         eventClick: function(info) {
             const props = info.event.extendedProps;
-            const estados = ['Pendiente','Confirmado','Cancelado','Ausente','Realizado'];
-            const colores = ['yellow-lt','green-lt','red-lt','gray-lt','blue-lt'];
-            
+            const ESTADOS = <?= json_encode($estados ?? []) ?>;
+
+                        
             document.getElementById('modalTurnoId').value = info.event.id;            
             document.getElementById('btnHistorial').href = '<?= baseUrl('/admin/pacientes') ?>/' + props.paciente_id + '/historial';
             document.getElementById('modalPaciente').textContent = props.paciente || 'N/A';
             document.getElementById('modalProfesional').textContent = props.profesional || 'N/A';
             document.getElementById('modalFecha').textContent = info.event.extendedProps.fecha_hora_formatted;
-            document.getElementById('modalEstado').textContent = estados[props.estado-1] || 'N/A';
-            document.getElementById('modalEstado').className = 'badge bg-' + (colores[props.estado-1] || 'yellow-lt');
+            const estado = ESTADOS.find(e => e.id == props.estado);
+            document.getElementById('modalEstado').textContent = estado?.nombre || 'N/A';
+            document.getElementById('modalEstado').className = 'badge';
+            document.getElementById('modalEstado').style.backgroundColor = (estado?.color || '#ccc') + '20';
+            document.getElementById('modalEstado').style.color = estado?.color || '#666';
             document.getElementById('modalObservaciones').textContent = info.event.extendedProps.observaciones || 'Sin observaciones';
             
             // 🔹 Link según rol + validación día actual para médico

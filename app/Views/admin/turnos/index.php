@@ -79,16 +79,15 @@
                         <td><?= htmlspecialchars($t['consultorio_nombre'] ?? '-') ?></td>
                         <td>
                             <?php 
-                            $estados = [
-                                1 => ['class' => 'yellow-lt', 'label' => 'Pendiente'],
-                                2 => ['class' => 'green-lt', 'label' => 'Confirmado'],
-                                3 => ['class' => 'red-lt', 'label' => 'Cancelado'],
-                                4 => ['class' => 'gray-lt', 'label' => 'Ausente'],
-                                5 => ['class' => 'blue-lt', 'label' => 'Realizado']
-                            ];
-                            $e = $estados[$t['estado_id']] ?? $estados[1];
+                            $estado_map = [];
+                            foreach ($estados as $e) {
+                                $estado_map[$e['id']] = $e;
+                            }
+                            $e = $estado_map[$t['estado_id']] ?? $estado_map[1];
                             ?>
-                            <span class="badge bg-<?= $e['class'] ?>"><?= $e['label'] ?></span>
+                            <span class="badge" style="background-color: <?= $e['color'] ?>20; color: <?= $e['color'] ?>">
+                                <?= htmlspecialchars($e['nombre']) ?>
+                            </span>
                         </td>
                         <td class="text-end">
                         <?php if (($_SESSION['user_role_slug'] ?? '') === 'medico'): ?>
