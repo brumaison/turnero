@@ -75,7 +75,7 @@
             <!-- Observaciones -->
             <div class="mb-3">
                 <label class="form-label">Observaciones</label>
-                <textarea name="observaciones" class="form-control" rows="3"><?= htmlspecialchars($turno['observaciones']) ?></textarea>
+                <textarea name="observaciones" class="form-control" rows="3"><?= htmlspecialchars($turno['observaciones'] ?? '') ?></textarea>
             </div>
 
             <!-- Botones -->
