@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Avance - Etapa 1 | ByV Desarrollo Web</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        .highlight {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+        }
+        .badge-programado { background-color: #17a2b8; }
+        .badge-concurrido { background-color: #28a745; }
+        .badge-no-concurrido { background-color: #6c757d; }
+        .badge-cancelado { background-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>INFORME DE AVANCE – ETAPA 1</h1>
+        <h2 style="border:none; padding:0; margin-top:0;">"Turnero + Historia Clínica Mínima"</h2>
+
+        <table style="border:none; background:none;">
+            <tr style="background:none;">
+                <td style="border:none; padding:5px;"><strong>Cliente:</strong> Círculo Médico</td>
+                <td style="border:none; padding:5px;"><strong>Desarrolla:</strong> ByV Desarrollo Web</td>
+            </tr>
+            <tr style="background:none;">
+                <td style="border:none; padding:5px;"><strong>Período:</strong> Abril 2026</td>
+                <td style="border:none; padding:5px;"><strong>Estado:</strong> <span style="color:#28a745; font-weight:bold;">MVP Entregado y Funcional</span></td>
+            </tr>
+        </table>
+
+        <h2>Introducción</h2>
+        <p>El presente documento detalla los avances correspondientes a la <strong>primera etapa de desarrollo</strong> del Sistema Interno de Gestión de Turnos. Durante el mes de abril de 2026, se completó la construcción del Producto Mínimo Viable (MVP), entregando una herramienta estable, operativa y alineada con los flujos de trabajo reales de la sede.</p>
+        <p>Este informe tiene como objetivo comunicar de manera clara los <strong>logros técnicos alcanzados</strong>, los <strong>beneficios operativos</strong> que el sistema ya está generando, y el <strong>alcance funcional</strong> puesto a disposición del cliente.</p>
+
+        <h2>Logros Técnicos – MVP Entregado</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Módulo</th>
+                    <th>Descripción del Alcance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Gestión de Turnos</strong></td>
+                    <td>Sistema completo de alta, edición y cancelación de turnos, con búsqueda inteligente por profesional o especialidad para optimizar la disponibilidad</td>
+                </tr>
+                <tr>
+                    <td><strong>Calendario Operativo</strong></td>
+                    <td>Visualización diaria y semanal por profesional, con codificación de estados mediante colores para identificación rápida</td>
+                </tr>
+                <tr>
+                    <td><strong>Historia Clínica Mínima</strong></td>
+                    <td>Módulo de registro de diagnóstico y notas de texto por consulta, accesible para el médico en el momento de la atención</td>
+                </tr>
+                <tr>
+                    <td><strong>Gestión de Sobreturnos</strong></td>
+                    <td>Funcionalidad para agregar turnos fuera de la agenda estándar, con alerta visual de superposición para decisión consciente del operador</td>
+                </tr>
+                <tr>
+                    <td><strong>Infraestructura de Datos</strong></td>
+                    <td>Base de datos MySQL optimizada para operación en sede única con múltiples consultorios y profesionales</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Beneficios Operativos para la Sede</h2>
+        <p>El sistema entregado genera impactos positivos inmediatos en la operatoria diaria:</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Beneficio</th>
+                    <th>Impacto Concreto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Eficiencia en la carga</strong></td>
+                    <td>Búsqueda de pacientes por DNI + filtrado por especialidad reduce el tiempo de agendamiento de minutos a segundos</td>
+                </tr>
+                <tr>
+                    <td><strong>Reducción de errores</strong></td>
+                    <td>Alertas visuales de conflictos permiten evitar superposiciones sin bloquear la gestión flexible ante eventualidades</td>
+                </tr>
+                <tr>
+                    <td><strong>Centralización de información</strong></td>
+                    <td>Diagnóstico y observaciones de consulta disponibles en un único punto, accesible para el médico durante la atención</td>
+                </tr>
+                <tr>
+                    <td><strong>Disponibilidad priorizada</strong></td>
+                    <td>La búsqueda por especialidad permite agendar rápidamente cuando el paciente no tiene profesional asignado previamente</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Alcance Entregado – Módulos Activos</h2>
+        <p>A continuación se detallan las funcionalidades que se encuentran <strong>operativas y a disposición del cliente</strong>:</p>
+        <ol>
+            <li><strong>Dashboard de Operadora</strong><br>Vista unificada para gestionar toda la agenda de la sede desde un único punto de acceso.</li>
+            <li><strong>Agenda por Profesional</strong><br>Calendario limpio, organizado e imprimible, con filtros por fecha, estado y consultorio.</li>
+            <li><strong>Búsqueda por Especialidad</strong><br>Herramienta para identificar rápidamente qué profesionales tienen disponibilidad en un horario determinado.</li>
+            <li><strong>Ficha de Paciente Básica</strong><br>Registro centralizado con DNI, datos de contacto e historial de turnos en la sede.</li>
+            <li><strong>Módulo de Consulta</strong><br>Formulario simplificado para que el médico registre diagnóstico y notas de la atención.</li>
+            <li><strong>Panel de Estados Visuales</strong><br>Indicadores por color para identificación inmediata:<br>
+                <span class="badge badge-programado">Programado</span> 
+                <span class="badge badge-concurrido">Concurrido</span> 
+                <span class="badge badge-no-concurrido">No Concurrido</span> 
+                <span class="badge badge-cancelado">Cancelado</span>
+            </li>
+        </ol>
+
+        <div class="highlight">
+            <h3>Comentarios Finales</h3>
+            <p>El MVP entregado en abril de 2026 constituye una <strong>herramienta estable, eficiente y adaptada a la operatoria real</strong> de la sede. El enfoque en <strong>búsqueda por especialidad para priorizar disponibilidad</strong> y <strong>gestión visual de conflictos</strong> responde directamente a las necesidades prioritarias relevadas durante el proyecto.</p>
+            <p>La arquitectura implementada garantiza una base sólida, escalable y de fácil mantenimiento, posicionando al sistema para evoluciones futuras según las necesidades del Círculo Médico.</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Contacto y Soporte</strong></p>
+            <p><strong>ByV Desarrollo Web</strong><br>
+            <em>Soluciones IT a medida para el sector salud</em><br>
+            byv.desarrolloweb@gmail.com<br>
+            Mayo 2026 – Versión 1.5 Final</p>
+            <p style="margin-top:20px; font-size:12px; color:#bdc3c7;"><em>Documento elaborado para presentación comercial. Listo para impresión o envío digital.</em></p>
+        </div>
+    </div>
+</body>
+</html>

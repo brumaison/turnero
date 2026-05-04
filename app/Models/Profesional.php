@@ -143,7 +143,7 @@ class Profesional extends Model {
     public static function updateWithOperator($id, $data) {
         $db = Database::getInstance();
         
-        // Obtener user_id del profesional
+        // Obtener user_id actual del profesional
         $stmt = $db->prepare("SELECT user_id FROM profesionales WHERE id = ?");
         $stmt->execute([$id]);
         $profesional = $stmt->fetch();
@@ -152,7 +152,7 @@ class Profesional extends Model {
         $db->beginTransaction();
         
         try {
-            // 1. Actualizar profesional
+            // 1. Actualizar profesional (nombre, consultorio, duración)
             $stmt = $db->prepare("
                 UPDATE profesionales 
                 SET nombre = ?, consultorio_default_id = ?, duracion_default = ?
@@ -165,22 +165,46 @@ class Profesional extends Model {
                 $id
             ]);
             
-            // 2. Actualizar operador: email
-            if (!empty($data['email'])) {
-                $stmt = $db->prepare("UPDATE operadores SET email = ? WHERE id = ?");
-                $stmt->execute([$data['email'], $user_id]);
+            // 2. Manejar operador (crear o actualizar)
+            if (empty($user_id)) {
+                // 🔹 CASO: Profesional sin operador → CREAR uno nuevo
+                if (!empty($data['email']) && !empty($data['password'])) {
+                    // Crear operador
+                    $stmt = $db->prepare("
+                        INSERT INTO operadores (email, password_hash, role_id) 
+                        VALUES (?, ?, 3)
+                    ");
+                    $stmt->execute([
+                        $data['email'],
+                        password_hash($data['password'], PASSWORD_DEFAULT)
+                    ]);
+                    $user_id = $db->lastInsertId();
+                    
+                    // Vincular operador al profesional
+                    $stmt = $db->prepare("UPDATE profesionales SET user_id = ? WHERE id = ?");
+                    $stmt->execute([$user_id, $id]);
+                }
+                // Si no hay email/password, simplemente no creamos operador
+            } else {
+                // 🔹 CASO: Profesional YA tiene operador → ACTUALIZAR
+                
+                // Actualizar email
+                if (!empty($data['email'])) {
+                    $stmt = $db->prepare("UPDATE operadores SET email = ? WHERE id = ?");
+                    $stmt->execute([$data['email'], $user_id]);
+                }
+                
+                // Actualizar password (solo si se proveyó)
+                if (!empty($data['password'])) {
+                    $stmt = $db->prepare("UPDATE operadores SET password_hash = ? WHERE id = ?");
+                    $stmt->execute([
+                        password_hash($data['password'], PASSWORD_DEFAULT),
+                        $user_id
+                    ]);
+                }
             }
             
-            // 3. Actualizar operador: password (solo si se proveyó)
-            if (!empty($data['password'])) {
-                $stmt = $db->prepare("UPDATE operadores SET password_hash = ? WHERE id = ?");
-                $stmt->execute([
-                    password_hash($data['password'], PASSWORD_DEFAULT),
-                    $user_id
-                ]);
-            }
-            
-            // 4. Actualizar especialidades
+            // 3. Actualizar especialidades
             if (isset($data['especialidades'])) {
                 $db->prepare("DELETE FROM profesional_especialidad WHERE profesional_id = ?")->execute([$id]);
                 foreach ($data['especialidades'] as $esp_id) {

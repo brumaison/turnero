@@ -8,6 +8,7 @@ use App\Models\Turno;
 use App\Models\Paciente;
 use App\Models\Profesional;
 use App\Models\Agenda;
+use App\Models\Especialidad;
 
 class TurnosController extends Controller {
 
@@ -49,12 +50,14 @@ class TurnosController extends Controller {
     
     public function create() {
         $profesionales = Profesional::todos();
+        $especialidades = Especialidad::all();
         $consultorios = Turno::getConsultorios();
         $fecha_seleccionada = $_GET['fecha'] ?? null;
         $profesional_id = $this->esMedico() ? ($_SESSION['profesional_id'] ?? null) : null;
 
         View::render('admin/turnos/create', [
             'profesionales' => $profesionales,
+            'especialidades' => $especialidades,
             'profesional_id' => $profesional_id,
             'consultorios' => $consultorios,
             'fecha_seleccionada' => $fecha_seleccionada,
@@ -277,7 +280,7 @@ class TurnosController extends Controller {
 
         $turnos = Turno::getRango($start, $end, $profesional_id);
         $estados = Turno::getEstadosConColor();
-
+        
         // Crear mapa de colores por estado_id
         $colores_por_estado = [];
         foreach ($estados as $e) {
@@ -289,7 +292,7 @@ class TurnosController extends Controller {
                 'id' => $turno['id'],
                 'title' => trim("{$turno['apellido']}, {$turno['nombre']} - {$turno['profesional']}"),
                 'start' => date('c', strtotime($turno['fecha_hora'])),
-                'backgroundColor' => $colores_por_estado[$turno['estado_id']] ?? '#17a2b8',  // ✅ USAR COLOR DB
+                'backgroundColor' => $colores_por_estado[$turno['estado_id']] ?? '#17a2b8',
                 'extendedProps' => [
                     'paciente' => "{$turno['apellido']}, {$turno['nombre']}",
                     'paciente_id' => $turno['paciente_id'],
@@ -333,6 +336,28 @@ class TurnosController extends Controller {
         }
 
         echo json_encode($resultado);
+    }
+
+    // 🔹 NUEVO: Buscar horarios disponibles por especialidad
+    public function availableSlotsBySpecialty() {
+        header('Content-Type: application/json');
+
+        $especialidad_id = $_GET['especialidad_id'] ?? null;
+        $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-d');
+
+        if (!$especialidad_id) {
+            echo json_encode(['error' => 'Falta especialidad_id']);
+            return;
+        }
+
+        $horarios = Turno::getHorariosPorEspecialidad($especialidad_id, $fecha_desde);
+        
+        if (empty($horarios)) {
+            echo json_encode(['error' => 'No hay horarios disponibles']);
+            return;
+        }
+
+        echo json_encode($horarios);
     }
 
     // ─────────────────────────────────────────────────────────────

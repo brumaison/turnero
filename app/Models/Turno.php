@@ -18,6 +18,44 @@ class Turno extends Model {
         $stmt->execute();
         return $stmt->fetchAll();
     }
+    public static function getHorariosPorEspecialidad($especialidad_id, $fecha_desde, $dias = 7) {
+    $db = self::db();
+    
+    // Obtener profesionales con esta especialidad
+    $stmt = $db->prepare("
+        SELECT p.id, p.nombre 
+        FROM profesionales p
+        INNER JOIN profesional_especialidad pe ON p.id = pe.profesional_id
+        WHERE pe.especialidad_id = ?
+    ");
+    $stmt->execute([$especialidad_id]);
+    $profesionales = $stmt->fetchAll();
+
+    if (empty($profesionales)) return [];
+
+    $resultado = [];
+    
+    foreach ($profesionales as $prof) {
+        for ($i = 0; $i < $dias; $i++) {
+            $fecha = date('Y-m-d', strtotime($fecha_desde . " +$i days"));
+            $horarios = \App\Models\Agenda::getHorariosDisponibles($prof['id'], $fecha);
+
+            foreach ($horarios as $hora) {
+                $resultado[] = [
+                    'profesional_id' => $prof['id'],
+                    'profesional_nombre' => $prof['nombre'],
+                    'fecha' => $fecha,
+                    'fecha_label' => carbon_date($fecha)->translatedFormat('l d/m'),
+                    'hora' => $hora,
+                    'fecha_hora' => $fecha . ' ' . $hora
+                ];
+            }
+        }
+    }
+
+    usort($resultado, fn($a, $b) => strcmp($a['fecha_hora'], $b['fecha_hora']));
+    return array_slice($resultado, 0, 20);
+}
 
     public static function getRango($fecha_inicio, $fecha_fin, $profesional_id = null) {
         if ($profesional_id) {

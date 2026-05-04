@@ -64,6 +64,9 @@ return function($router) {
     $router->post('/admin/turnos/{id}/update', [TurnosController::class, 'update'], ['auth']);
     
     $router->get('/admin/turnos/search-patient', [TurnosController::class, 'searchPatient'], ['auth']);
+
+    // Turnos: AJAX - Buscar horarios por especialidad
+    $router->get('/admin/turnos/available-slots-by-specialty', [TurnosController::class, 'availableSlotsBySpecialty'], ['auth']);
     
     // Turnos: Calendario
     $router->get('/admin/turnos/calendar', [TurnosController::class, 'calendar'], ['auth']);

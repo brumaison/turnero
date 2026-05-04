@@ -1,13 +1,49 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title mb-0">Nuevo Turno</h3>
-        <button type="button" class="btn btn-outline-warning btn-sm" id="btn-sobreturno">
-            ⚠️ Sobreturno
-        </button>
+        <div class="d-flex gap-2">
+            <!-- Toggle modo de búsqueda -->
+            <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="modo_busqueda" 
+                       id="modo_profesional" value="profesional" checked>
+                <label class="btn btn-outline-primary btn-sm" for="modo_profesional">
+                    <i class="ti ti-user"></i> Profesional
+                </label>
+                
+                <input type="radio" class="btn-check" name="modo_busqueda" 
+                       id="modo_especialidad" value="especialidad">
+                <label class="btn btn-outline-primary btn-sm" for="modo_especialidad">
+                    <i class="ti ti-stethoscope"></i> Especialidad
+                </label>
+            </div>
+            
+            <button type="button" class="btn btn-outline-warning btn-sm" id="btn-sobreturno">
+                ⚠️ Sobreturno
+            </button>
+        </div>
     </div>
     <div class="card-body">
         
-        <!-- Paso 1: Selección de disponibilidad (flujo normal) -->
+        <!-- Paso 1: Búsqueda por Especialidad -->
+        <div id="step-especialidad" class="d-none">
+            <div class="mb-3">
+                <label class="form-label required">Especialidad</label>
+                <select class="form-select" id="select_especialidad">
+                    <option value="">Seleccionar...</option>
+                    <?php foreach ($especialidades as $e): ?>
+                    <option value="<?= $e['id'] ?>"><?= htmlspecialchars($e['nombre']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            
+            <!-- Contenedor de horarios por especialidad -->
+            <div id="contenedor-horarios-especialidad" class="d-none">
+                <h5 class="mb-3">Próximos horarios disponibles</h5>
+                <div id="lista-horarios-especialidad" class="space-y-3"></div>
+            </div>
+        </div>
+
+        <!-- Paso 2: Selección de disponibilidad (flujo normal por profesional) -->
         <div id="step-disponibilidad">
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
@@ -39,7 +75,7 @@
             </div>
         </div>
 
-        <!-- Paso 1.5: Formulario sobreturno (oculto por defecto) -->
+        <!-- Paso 3: Formulario sobreturno (oculto por defecto) -->
         <div id="step-sobreturno" class="d-none">
             <div class="alert alert-warning">
                 <strong>⚠️ Sobreturno</strong><br>
@@ -68,7 +104,7 @@
             </div>
         </div>
 
-        <!-- Paso 2: Formulario de confirmación (oculto hasta seleccionar horario) -->
+        <!-- Paso 4: Formulario de confirmación (oculto hasta seleccionar horario) -->
         <div id="step-formulario" class="d-none">
             <form method="POST" action="<?= baseUrl('/admin/turnos/store') ?>" id="form-turno">
                 <?= csrf_field() ?>
@@ -191,11 +227,94 @@ $(document).ready(function() {
     document.getElementById('sobreturno_fecha_hora').min = minLocal;
 
     // ─────────────────────────────────────────────────────────────
+    // Toggle entre Profesional y Especialidad
+    // ─────────────────────────────────────────────────────────────
+
+    $('input[name="modo_busqueda"]').on('change', function() {
+        const esEspecialidad = $('#modo_especialidad').is(':checked');
+        
+        if (esEspecialidad) {
+            $('#step-disponibilidad').addClass('d-none');
+            $('#step-especialidad').removeClass('d-none');
+            $('#step-sobreturno').addClass('d-none');
+        } else {
+            $('#step-disponibilidad').removeClass('d-none');
+            $('#step-especialidad').addClass('d-none');
+            $('#step-sobreturno').addClass('d-none');
+        }
+        
+        $('#step-formulario').addClass('d-none');
+    });
+
+    // Buscar horarios por especialidad
+    $('#select_especialidad').on('change', function() {
+        const especialidadId = $(this).val();
+        
+        if (!especialidadId) {
+            $('#contenedor-horarios-especialidad').addClass('d-none');
+            return;
+        }
+        
+        $('#lista-horarios-especialidad').html('<div class="text-center py-3"><div class="spinner-border text-primary"></div><p class="text-muted mt-2">Buscando horarios...</p></div>');
+        $('#contenedor-horarios-especialidad').removeClass('d-none');
+        
+        $.get('<?= baseUrl('/admin/turnos/available-slots-by-specialty') ?>', {
+            especialidad_id: especialidadId,
+            fecha_desde: '<?= date('Y-m-d') ?>'
+        }, function(horarios) {
+            if (horarios.error || horarios.length === 0) {
+                $('#lista-horarios-especialidad').html('<p class="text-muted">No hay horarios disponibles en los próximos 7 días</p>');
+            } else {
+                let html = '';
+                let fechaActual = null;
+                
+                horarios.forEach(slot => {
+                    // Agrupar por fecha
+                    if (slot.fecha !== fechaActual) {
+                        if (fechaActual !== null) html += `</div></div>`;
+                        fechaActual = slot.fecha;
+                        html += `<div class="card"><div class="card-header"><strong>${slot.fecha_label}</strong></div><div class="card-body">`;
+                    }
+                    
+                    html += `<button type="button" class="btn btn-outline-primary btn-sm m-1 slot-especialidad" 
+                        data-fecha-hora="${slot.fecha_hora}" 
+                        data-profesional-id="${slot.profesional_id}"
+                        data-profesional-nombre="${slot.profesional_nombre}"
+                        data-label="${slot.fecha_label} ${slot.hora}">
+                        ${slot.hora} - ${slot.profesional_nombre}
+                    </button>`;
+                });
+                html += `</div></div>`;
+                
+                $('#lista-horarios-especialidad').html(html);
+            }
+        });
+    });
+
+    // Seleccionar horario por especialidad
+    $(document).on('click', '.slot-especialidad', function() {
+        const fechaHora = $(this).data('fecha-hora');
+        const profesionalId = $(this).data('profesional-id');
+        const profesionalNombre = $(this).data('profesional-nombre');
+        const label = $(this).data('label');
+        
+        $('#form_profesional_id').val(profesionalId);
+        $('#form_fecha_hora').val(fechaHora + ':00');
+        $('#form_sobreturno').val('0');
+        $('#resumen-turno').text(`${profesionalNombre} - ${label}`);
+        $('#box-sobreturno').addClass('d-none');
+        
+        $('#step-especialidad').addClass('d-none');
+        $('#step-formulario').removeClass('d-none');
+    });
+
+    // ─────────────────────────────────────────────────────────────
     // FLUJO SOBRETURNO
     // ─────────────────────────────────────────────────────────────
     
     $('#btn-sobreturno').on('click', function() {
         $('#step-disponibilidad').addClass('d-none');
+        $('#step-especialidad').addClass('d-none');
         $('#step-sobreturno').removeClass('d-none');
         $('#step-formulario').addClass('d-none');
     });
@@ -218,9 +337,8 @@ $(document).ready(function() {
         const profesionalNombre = $('#sobreturno_profesional option:selected').text();
         const fechaObj = new Date(fechaHora);
         
-        // 🔹 FIX: Usar helpers para evitar conversión UTC
         $('#form_profesional_id').val(profesionalId);
-        $('#form_fecha_hora').val(formatLocalDateTime(fechaObj));  // ✅ Hora local para BD
+        $('#form_fecha_hora').val(formatLocalDateTime(fechaObj));
         $('#form_sobreturno').val('1');
         $('#resumen-turno').text(`${profesionalNombre} - ${formatForDisplay(fechaObj)}`);
         
@@ -287,7 +405,7 @@ $(document).ready(function() {
         const profesionalNombre = $('#select_profesional option:selected').text();
         
         $('#form_profesional_id').val($('#select_profesional').val());
-        $('#form_fecha_hora').val(`${fecha} ${hora}:00`);  // ✅ Ya viene en formato correcto
+        $('#form_fecha_hora').val(`${fecha} ${hora}:00`);
         $('#form_sobreturno').val('0');
         $('#resumen-turno').text(`${profesionalNombre} - ${label}`);
         $('#box-sobreturno').addClass('d-none');
@@ -368,10 +486,12 @@ $(document).ready(function() {
             $('#sugerenciasPacientes').hide();
         }
     });
+    
+    // Mostrar modo sobreturno si viene de URL
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'sobreturno') {
-    $('#step-disponibilidad').addClass('d-none');
-    $('#step-sobreturno').removeClass('d-none');
+        $('#step-disponibilidad').addClass('d-none');
+        $('#step-sobreturno').removeClass('d-none');
     }
 });
 </script>
