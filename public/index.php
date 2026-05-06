@@ -13,6 +13,7 @@ $dotenv->load();
 
 use Carbon\Carbon;
 Carbon::setLocale($_ENV['APP_LOCALE'] ?? 'es');
+Carbon::setTimezone('America/Argentina/Buenos_Aires');  // ← AGREGAR ESTO
 // Timezone ya está seteado antes, pero si querés usar .env:
 // date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'America/Argentina/Buenos_Aires');
 
