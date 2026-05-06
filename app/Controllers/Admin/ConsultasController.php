@@ -61,9 +61,9 @@ class ConsultasController extends Controller {
             'notas' => $_POST['notas'] ?? null
         ]);
 
-        // Actualizar estado del turno a "Realizado" (5)
+        // Actualizar estado del turno a "Concurrido" (2)
         // Solo esto:
-        Turno::updateEstado($turno_id, 5);
+        Turno::updateEstado($turno_id, 2);
 
         redirect('/admin/turnos');
     }
