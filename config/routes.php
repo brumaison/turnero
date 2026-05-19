@@ -73,6 +73,8 @@ return function($router) {
     $router->get('/admin/turnos/get-events', [TurnosController::class, 'getEvents'], ['auth']);
     $router->get('/admin/turnos/available-slots', [TurnosController::class, 'availableSlots'], ['auth']);
 
+    $router->post('/admin/turnos/{id}/cancel', [TurnosController::class, 'cancel'], ['auth']);
+
     // === CONSULTAS (solo médicos) ===
     $router->get('/admin/consultas/{id}/atender', [ConsultasController::class, 'atender'], ['auth', 'role:medico']);
     $router->post('/admin/consultas/store', [ConsultasController::class, 'store'], ['auth', 'role:medico']);

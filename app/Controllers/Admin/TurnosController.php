@@ -360,6 +360,23 @@ class TurnosController extends Controller {
         echo json_encode($horarios);
     }
 
+    public function cancel($id) {
+        csrf_verify();  // ← Importante por seguridad
+        
+        $turno = Turno::findById($id);
+        
+        // Validar permiso (si es médico, solo puede cancelar los suyos)
+        if ($this->esMedico() && $turno['profesional_id'] != $_SESSION['profesional_id']) {
+            Flash::error('No tenés permiso para cancelar este turno');
+            redirect('/admin/turnos');
+            return;
+        }
+        
+        Turno::updateEstado($id, 4);  // 4 = Cancelado
+        Flash::success('Turno cancelado');
+        redirect('/admin/turnos');
+    }
+
     // ─────────────────────────────────────────────────────────────
     // HELPERS PRIVADOS
     // ─────────────────────────────────────────────────────────────

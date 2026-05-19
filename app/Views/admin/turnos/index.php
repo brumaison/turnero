@@ -112,9 +112,15 @@
                             <a href="<?= baseUrl('/admin/turnos/' . $t['id'] . '/edit') ?>" class="btn btn-primary btn-sm" title="Editar">
                                 <i class="ti ti-edit"></i>
                             </a>
-                            <button class="btn btn-danger btn-sm" onclick="cancelarTurno(<?= $t['id'] ?>)" title="Cancelar">
-                                <i class="ti ti-x"></i>
-                            </button>
+                            <!-- Botón Cancelar (form POST) - solo si no está cancelado -->
+                            <?php if ($t['estado_id'] != 4): ?>
+                            <form method="POST" action="<?= baseUrl('/admin/turnos/' . $t['id'] . '/cancel') ?>" class="d-inline" onsubmit="return confirm('¿Cancelar turno?')">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-danger btn-sm" title="Cancelar">
+                                    <i class="ti ti-x"></i> 
+                                </button>
+                            </form>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </td>
                     </tr>
