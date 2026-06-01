@@ -31,6 +31,14 @@ class Agenda extends Model {
 
     public static function estaDisponible($profesional_id, $fecha_hora, $duracion_minutos = 30, $excluir_turno_id = null) {
         $datetime = new \DateTime($fecha_hora);
+        
+        $meses = \App\Models\Profesional::getMesesAbiertos($profesional_id);
+        $max_date = new \DateTime();
+        $max_date->modify("+{$meses} months");
+        if ($datetime > $max_date) {
+            return false;
+        }
+        
         $dia_semana = (int)$datetime->format('N');
         $hora = $datetime->format('H:i:s');
         $hora_fin_turno = date('H:i:s', strtotime($hora) + ($duracion_minutos * 60));
@@ -72,6 +80,14 @@ class Agenda extends Model {
 
     public static function getHorariosDisponibles($profesional_id, $fecha) {
         $datetime = new \DateTime($fecha);
+        
+        $meses = \App\Models\Profesional::getMesesAbiertos($profesional_id);
+        $max_date = new \DateTime();
+        $max_date->modify("+{$meses} months");
+        if ($datetime > $max_date) {
+            return [];
+        }
+        
         $dia_semana = (int)$datetime->format('N');
         
         $stmt = self::db()->prepare("
@@ -190,5 +206,19 @@ class Agenda extends Model {
         $stmt = self::db()->prepare($sql);
         $stmt->execute($params);
         return (int)$stmt->fetchColumn() > 0;
+    }
+
+    public static function getHorarioSede() {
+        $stmt = self::db()->prepare("
+            SELECT MIN(hora_inicio) as apertura, MAX(hora_fin) as cierre
+            FROM agendas
+            WHERE activo = 1
+        ");
+        $stmt->execute();
+        $resultado = $stmt->fetch();
+        return [
+            'apertura' => $resultado['apertura'] ?? '08:00:00',
+            'cierre' => $resultado['cierre'] ?? '18:00:00'
+        ];
     }
 }

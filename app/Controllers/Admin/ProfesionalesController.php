@@ -50,6 +50,7 @@ class ProfesionalesController extends Controller {
             'nombre' => $_POST['nombre'],
             'consultorio_default_id' => (int)$_POST['consultorio_default_id'],
             'duracion_default' => $_POST['duracion_default'] ?? 30,
+            'meses_abiertos' => (int)($_POST['meses_abiertos'] ?? 3),
             'especialidades' => $_POST['especialidades'] ?? []
         ]);
         
@@ -90,6 +91,7 @@ class ProfesionalesController extends Controller {
             'nombre' => $_POST['nombre'],
             'consultorio_default_id' => (int)$_POST['consultorio_default_id'],
             'duracion_default' => $_POST['duracion_default'] ?? 30,
+            'meses_abiertos' => (int)($_POST['meses_abiertos'] ?? 3),
             'especialidades' => $_POST['especialidades'] ?? []
         ]);
         

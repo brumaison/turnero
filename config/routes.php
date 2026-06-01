@@ -6,6 +6,7 @@ use App\Controllers\Admin\ProfesionalesController;
 use App\Controllers\Admin\AgendasController;
 use App\Controllers\Admin\ConsultasController;
 use App\Controllers\Admin\PacientesController;
+use App\Controllers\Admin\OperadoresController;
 
 return function($router) {
     // Públicas
@@ -92,4 +93,12 @@ return function($router) {
     $router->get('/admin/pacientes/{id}/edit', [PacientesController::class, 'edit'], ['auth', 'role:admin,recepcion']);
     $router->post('/admin/pacientes/{id}/update', [PacientesController::class, 'update'], ['auth', 'role:admin,recepcion']);
     $router->get('/admin/pacientes/{id}/destroy', [PacientesController::class, 'destroy'], ['auth', 'role:admin,recepcion']);
+
+    // === OPERADORES (solo admin) ===
+    $router->get('/admin/operadores', [OperadoresController::class, 'index'], ['auth', 'role:admin']);
+    $router->get('/admin/operadores/create', [OperadoresController::class, 'create'], ['auth', 'role:admin']);
+    $router->post('/admin/operadores/store', [OperadoresController::class, 'store'], ['auth', 'role:admin']);
+    $router->get('/admin/operadores/{id}/edit', [OperadoresController::class, 'edit'], ['auth', 'role:admin']);
+    $router->post('/admin/operadores/{id}/update', [OperadoresController::class, 'update'], ['auth', 'role:admin']);
+    $router->get('/admin/operadores/{id}/destroy', [OperadoresController::class, 'destroy'], ['auth', 'role:admin']);
 };

@@ -2,6 +2,7 @@
     <div class="card-header"><h3 class="card-title">Editar Horario</h3></div>
     <div class="card-body">
         <form method="POST" action="<?= baseUrl('/admin/profesionales/'.$profesional['id'].'/agenda/'.$agenda['id'].'/update') ?>">
+            <?= csrf_field() ?>
             <div class="mb-3">
                 <label class="form-label">Día</label>
                 <select class="form-select" name="dia_semana" required>

@@ -2,6 +2,7 @@
     <div class="card-header"><h3 class="card-title">Nueva Especialidad</h3></div>
     <div class="card-body">
         <form method="POST" action="<?= baseUrl('/admin/especialidades/store') ?>">
+            <?= csrf_field() ?>
             <div class="mb-3">
                 <label class="form-label">Nombre</label>
                 <input type="text" class="form-control" name="nombre" required>

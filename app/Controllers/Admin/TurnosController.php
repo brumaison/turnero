@@ -20,25 +20,28 @@ class TurnosController extends Controller {
         $fecha_inicio = $_GET['fecha_inicio'] ?? date('Y-m-d');
         $fecha_fin = $_GET['fecha_fin'] ?? date('Y-m-d');
         $profesional_id = $_GET['profesional_id'] ?? null;
+        $especialidad_id = $_GET['especialidad_id'] ?? null;
         $estado_id = $_GET['estado_id'] ?? null;
 
         if ($this->esMedico()) {
             $profesional_id = $_SESSION['profesional_id'] ?? null;
         }
 
-        $turnos = Turno::getRango($fecha_inicio, $fecha_fin, $profesional_id);
+        $turnos = Turno::getRango($fecha_inicio, $fecha_fin, $profesional_id, $especialidad_id);
 
         if ($estado_id) {
             $turnos = array_filter($turnos, fn($t) => $t['estado_id'] == $estado_id);
         }
 
         $profesionales = Profesional::todos();
+        $especialidades = Especialidad::all();
 
         View::render('admin/turnos/index', [
             'turnos' => $turnos,
             'profesionales' => $profesionales,
+            'especialidades' => $especialidades,
             'estados' => Turno::getEstadosConColor(),
-            'filtros' => compact('fecha_inicio', 'fecha_fin', 'profesional_id', 'estado_id'),
+            'filtros' => compact('fecha_inicio', 'fecha_fin', 'profesional_id', 'especialidad_id', 'estado_id'),
             'pageTitle' => 'Gestión de Turnos',
             'activePage' => 'turnos'
         ]);
@@ -260,10 +263,14 @@ class TurnosController extends Controller {
 
     public function calendar() {
         $profesionales = $this->esMedico() ? null : Profesional::todos();
+        $especialidades = $this->esMedico() ? null : Especialidad::all();
+        $horarioSede = Agenda::getHorarioSede();
         
         View::render('admin/turnos/calendar', [
             'profesionales' => $profesionales,
+            'especialidades' => $especialidades,
             'estados' => Turno::getEstadosConColor(),
+            'horarioSede' => $horarioSede,
             'pageTitle' => 'Calendario de Turnos',
             'activePage' => 'turnos'
         ]);
@@ -276,9 +283,10 @@ class TurnosController extends Controller {
         $end = $_GET['end'] ?? date('Y-m-d', strtotime('+30 days'));
         $profesional_id = $this->esMedico() 
             ? $_SESSION['profesional_id'] ?? null 
-            : $_GET['profesional_id'] ?? null;
+            : ($_GET['profesional_id'] ?? null);
+        $especialidad_id = $_GET['especialidad_id'] ?? null;
 
-        $turnos = Turno::getRango($start, $end, $profesional_id);
+        $turnos = Turno::getRango($start, $end, $profesional_id, $especialidad_id);
         $estados = Turno::getEstadosConColor();
         
         // Crear mapa de colores por estado_id
@@ -288,10 +296,15 @@ class TurnosController extends Controller {
         }
 
         $events = array_map(function($turno) use ($colores_por_estado) {
+            $start = date('c', strtotime($turno['fecha_hora']));
+            $duracion = (int)($turno['duracion_minutos'] ?? 30);
+            $end = date('c', strtotime($turno['fecha_hora']) + ($duracion * 60));
+
             return [
                 'id' => $turno['id'],
                 'title' => trim("{$turno['apellido']}, {$turno['nombre']} - {$turno['profesional']}"),
-                'start' => date('c', strtotime($turno['fecha_hora'])),
+                'start' => $start,
+                'end' => $end,
                 'backgroundColor' => $colores_por_estado[$turno['estado_id']] ?? '#17a2b8',
                 'extendedProps' => [
                     'paciente' => "{$turno['apellido']}, {$turno['nombre']}",
@@ -300,7 +313,8 @@ class TurnosController extends Controller {
                     'consultorio' => $turno['consultorio_nombre'] ?? 'Sin consultorio',
                     'estado' => $turno['estado_id'],
                     'observaciones' => $turno['observaciones'] ?? '',
-                    'fecha_hora_formatted' => date('d/m/Y H:i', strtotime($turno['fecha_hora']))
+                    'fecha_hora_formatted' => date('d/m/Y H:i', strtotime($turno['fecha_hora'])),
+                    'duracion_minutos' => $duracion
                 ]
             ];
         }, $turnos);
@@ -313,12 +327,14 @@ class TurnosController extends Controller {
 
         $profesional_id = $_GET['profesional_id'] ?? null;
         $fecha_desde = $_GET['fecha_desde'] ?? date('Y-m-d');
-        $dias_a_mostrar = 15;
 
         if (!$profesional_id) {
             echo json_encode(['error' => 'Falta profesional_id']);
             return;
         }
+
+        $meses = \App\Models\Profesional::getMesesAbiertos($profesional_id);
+        $dias_a_mostrar = (int)($meses * 30.44);
 
         $resultado = [];
 

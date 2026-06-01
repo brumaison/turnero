@@ -4,6 +4,7 @@
     </div>
     <div class="card-body">
         <form method="POST" action="<?= baseUrl('/admin/pacientes/store') ?>">
+            <?= csrf_field() ?>
             
             <div class="row">
                 <!-- DNI -->

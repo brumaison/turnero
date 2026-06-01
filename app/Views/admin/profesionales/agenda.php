@@ -2,6 +2,7 @@
     <div class="card-header">
         <h3 class="card-title">Agenda: <?= htmlspecialchars($profesional['nombre']) ?></h3>
         <div class="card-actions">
+            <span class="badge text-bg-info me-2">Ventana: <?= $profesional['meses_abiertos'] ?? 3 ?> meses</span>
             <a href="<?= baseUrl('/admin/profesionales/' . $profesional['id'] . '/agenda/create') ?>" class="btn btn-primary">
                 <i class="ti ti-plus"></i> Agregar Horario
             </a>
@@ -29,7 +30,7 @@
                     <td><?= $a['hora_inicio'] ?></td>
                     <td><?= $a['hora_fin'] ?></td>
                     <td><?= $a['duracion_minutos'] ?> min</td>
-                    <td><span class="badge bg-<?= $a['activo'] ? 'success' : 'secondary' ?>"><?= $a['activo'] ? 'Activo' : 'Inactivo' ?></span></td>
+                    <td><span class="badge text-bg-<?= $a['activo'] ? 'success' : 'secondary' ?>"><?= $a['activo'] ? 'Activo' : 'Inactivo' ?></span></td>
                     <td>
                         <a href="<?= baseUrl('/admin/profesionales/' . $profesional['id'] . '/agenda/' . $a['id'] . '/edit') ?>" class="btn btn-sm btn-outline-primary">Editar</a>
                         <a href="<?= baseUrl('/admin/profesionales/' . $profesional['id'] . '/agenda/' . $a['id'] . '/destroy') ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')">Eliminar</a>

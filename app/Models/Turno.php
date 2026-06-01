@@ -18,7 +18,7 @@ class Turno extends Model {
         $stmt->execute();
         return $stmt->fetchAll();
     }
-    public static function getHorariosPorEspecialidad($especialidad_id, $fecha_desde, $dias = 7) {
+    public static function getHorariosPorEspecialidad($especialidad_id, $fecha_desde, $dias = 30) {
     $db = self::db();
     
     // Obtener profesionales con esta especialidad
@@ -57,37 +57,39 @@ class Turno extends Model {
     return array_slice($resultado, 0, 20);
 }
 
-    public static function getRango($fecha_inicio, $fecha_fin, $profesional_id = null) {
+    public static function getRango($fecha_inicio, $fecha_fin, $profesional_id = null, $especialidad_id = null) {
+        $baseSql = "
+            SELECT t.*, 
+                    p.nombre, p.apellido, p.dni, 
+                    pr.nombre as profesional,
+                    c.nombre as consultorio_nombre
+            FROM turnos t
+            JOIN pacientes p ON t.paciente_id = p.id
+            JOIN profesionales pr ON t.profesional_id = pr.id
+            LEFT JOIN consultorios c ON t.consultorio_id = c.id
+            WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
+        ";
+
+        $params = [$fecha_inicio, $fecha_fin];
+
         if ($profesional_id) {
-            $stmt = self::db()->prepare("
-                SELECT t.*, 
-                        p.nombre, p.apellido, p.dni, 
-                        pr.nombre as profesional,
-                        c.nombre as consultorio_nombre
-                FROM turnos t
-                JOIN pacientes p ON t.paciente_id = p.id
-                JOIN profesionales pr ON t.profesional_id = pr.id
-                LEFT JOIN consultorios c ON t.consultorio_id = c.id
-                WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
-                AND t.profesional_id = ?
-                ORDER BY t.fecha_hora ASC
-            ");
-            $stmt->execute([$fecha_inicio, $fecha_fin, $profesional_id]);
-        } else {
-            $stmt = self::db()->prepare("
-                SELECT t.*, 
-                        p.nombre, p.apellido, p.dni, 
-                        pr.nombre as profesional,
-                        c.nombre as consultorio_nombre
-                FROM turnos t
-                JOIN pacientes p ON t.paciente_id = p.id
-                JOIN profesionales pr ON t.profesional_id = pr.id
-                LEFT JOIN consultorios c ON t.consultorio_id = c.id
-                WHERE DATE(t.fecha_hora) BETWEEN ? AND ?
-                ORDER BY t.fecha_hora ASC
-            ");
-            $stmt->execute([$fecha_inicio, $fecha_fin]);
+            $baseSql .= " AND t.profesional_id = ?";
+            $params[] = $profesional_id;
         }
+
+        if ($especialidad_id) {
+            $baseSql .= " AND EXISTS (
+                SELECT 1 FROM profesional_especialidad pe
+                WHERE pe.profesional_id = t.profesional_id
+                AND pe.especialidad_id = ?
+            )";
+            $params[] = $especialidad_id;
+        }
+
+        $baseSql .= " ORDER BY t.fecha_hora ASC";
+
+        $stmt = self::db()->prepare($baseSql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

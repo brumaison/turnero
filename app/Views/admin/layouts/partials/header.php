@@ -57,11 +57,11 @@
                                 <span class="nav-link-title">Turnos</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'turnos' ? 'show' : '' ?>">
-                                <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'turnos' && $activeSubPage === 'index' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/turnos') ?>">Lista</a>
-                                <a class="dropdown-item <?= $activeSubPage === 'calendar' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'turnos' && $activeSubPage === 'calendar' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/turnos/calendar') ?>">Calendario</a>
-                                <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'turnos' && $activeSubPage === 'create' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/turnos/create') ?>">Nuevo Turno</a>
                             </div>
                         </li>
@@ -75,9 +75,9 @@
                                 <span class="nav-link-title">Profesionales</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'profesionales' ? 'show' : '' ?>">
-                                <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'profesionales' && $activeSubPage === 'index' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/profesionales') ?>">Lista</a>
-                                <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'profesionales' && $activeSubPage === 'create' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/profesionales/create') ?>">Nuevo</a>
                             </div>
                         </li>
@@ -90,12 +90,29 @@
                                 <span class="nav-link-title">Especialidades</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'especialidades' ? 'show' : '' ?>">
-                                <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'especialidades' && $activeSubPage === 'index' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/especialidades') ?>">Lista</a>
-                                <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'especialidades' && $activeSubPage === 'create' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/especialidades/create') ?>">Nueva</a>
                             </div>
                         </li>
+
+                        <!-- Operadores (solo admin) -->
+                        <?php if (($_SESSION['user_role_slug'] ?? '') === 'admin'): ?>
+                        <li class="nav-item dropdown <?= $activePage === 'operadores' ? 'show' : '' ?>">
+                            <a class="nav-link dropdown-toggle <?= in_array($activePage, ['operadores']) ? 'active' : '' ?>" 
+                            href="#" data-bs-toggle="dropdown">
+                                <span class="nav-link-icon"><i class="ti ti-shield-lock"></i></span>
+                                <span class="nav-link-title">Operadores</span>
+                            </a>
+                            <div class="dropdown-menu <?= $activePage === 'operadores' ? 'show' : '' ?>">
+                                <a class="dropdown-item <?= $activePage === 'operadores' && $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                href="<?= baseUrl('/admin/operadores') ?>">Lista</a>
+                                <a class="dropdown-item <?= $activePage === 'operadores' && $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                href="<?= baseUrl('/admin/operadores/create') ?>">Nuevo</a>
+                            </div>
+                        </li>
+                        <?php endif; ?>
                         <?php endif; ?>
                         <!-- Pacientes (todos los roles auth) -->
                         <li class="nav-item dropdown <?= $activePage === 'pacientes' ? 'show' : '' ?>">
@@ -105,10 +122,10 @@
                                 <span class="nav-link-title">Pacientes</span>
                             </a>
                             <div class="dropdown-menu <?= $activePage === 'pacientes' ? 'show' : '' ?>">
-                                <a class="dropdown-item <?= $activeSubPage === 'index' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'pacientes' && $activeSubPage === 'index' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/pacientes') ?>">Lista</a>
                                 <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
-                                <a class="dropdown-item <?= $activeSubPage === 'create' ? 'active' : '' ?>" 
+                                <a class="dropdown-item <?= $activePage === 'pacientes' && $activeSubPage === 'create' ? 'active' : '' ?>" 
                                 href="<?= baseUrl('/admin/pacientes/create') ?>">Nuevo</a>
                                 <?php endif; ?>
                             </div>

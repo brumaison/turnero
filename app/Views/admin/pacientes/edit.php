@@ -3,7 +3,8 @@
         <h3 class="card-title">Editar Paciente</h3>
     </div>
     <div class="card-body">
-        <form method="POST" action="<?= baseUrl('/admin/pacientes/' . $paciente['id'] . '/update') ?>">           
+        <form method="POST" action="<?= baseUrl('/admin/pacientes/' . $paciente['id'] . '/update') ?>">
+            <?= csrf_field() ?>
             
             <div class="row">
                 <div class="col-md-4">

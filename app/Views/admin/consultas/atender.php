@@ -21,6 +21,7 @@
         </div>
 
         <form method="POST" action="<?= baseUrl('/admin/consultas/store') ?>">
+            <?= csrf_field() ?>
             <input type="hidden" name="turno_id" value="<?= $turno['id'] ?>">
             
             <!-- Diagnóstico -->

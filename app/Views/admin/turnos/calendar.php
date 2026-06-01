@@ -2,11 +2,19 @@
     <div class="card-header">
         <h3 class="card-title"><?= $pageTitle ?></h3>
         <?php if (($_SESSION['user_role_slug'] ?? '') !== 'medico'): ?>
-        <div class="card-actions">
+        <div class="card-actions d-flex gap-2">
+            <select class="form-select" id="filtro_especialidad" style="min-width:180px">
+                <option value="">Todas las especialidades</option>
+                <?php foreach ($especialidades as $e): ?>
+                <option value="<?= $e['id'] ?>"><?= htmlspecialchars($e['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
             <select class="form-select" id="filtro_profesional" style="min-width:200px">
                 <option value="">Todos los profesionales</option>
                 <?php foreach ($profesionales as $p): ?>
-                <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
+                <option value="<?= $p['id'] ?>" data-especialidades="<?= htmlspecialchars($p['especialidades_ids'] ?? '') ?>">
+                    <?= htmlspecialchars($p['nombre']) ?>
+                </option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -38,6 +46,10 @@
                 <div class="mb-3">
                     <label class="form-label text-muted">Fecha y Hora</label>
                     <div id="modalFecha"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted">Duración</label>
+                    <div id="modalDuracion" class="fw-bold"></div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label text-muted">Estado</label>

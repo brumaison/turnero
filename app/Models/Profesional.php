@@ -10,7 +10,9 @@ class Profesional extends Model {
 
     public static function todos() {
         $stmt = self::db()->query("
-            SELECT p.*, GROUP_CONCAT(e.nombre SEPARATOR ', ') as especialidades
+            SELECT p.*, 
+                   GROUP_CONCAT(e.nombre SEPARATOR ', ') as especialidades,
+                   GROUP_CONCAT(e.id SEPARATOR ',') as especialidades_ids
             FROM profesionales p
             LEFT JOIN profesional_especialidad pe ON p.id = pe.profesional_id
             LEFT JOIN especialidades e ON pe.especialidad_id = e.id
@@ -38,13 +40,14 @@ class Profesional extends Model {
 
     public static function create($data) {
         $stmt = self::db()->prepare("
-            INSERT INTO profesionales (nombre, consultorio_default_id, duracion_default)
-            VALUES (?, ?, ?)
+            INSERT INTO profesionales (nombre, consultorio_default_id, duracion_default, meses_abiertos)
+            VALUES (?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['nombre'],
             $data['consultorio_default_id'] ?? null,
-            $data['duracion_default'] ?? 30
+            $data['duracion_default'] ?? 30,
+            (int)($data['meses_abiertos'] ?? 3)
         ]);
         $profesional_id = self::db()->lastInsertId();
         
@@ -62,13 +65,14 @@ class Profesional extends Model {
     public static function update($id, $data) {
         $stmt = self::db()->prepare("
             UPDATE profesionales 
-            SET nombre = ?, consultorio_default_id = ?, duracion_default = ?
+            SET nombre = ?, consultorio_default_id = ?, duracion_default = ?, meses_abiertos = ?
             WHERE id = ?
         ");
         $stmt->execute([
             $data['nombre'],
             $data['consultorio_default_id'] ?? null,
             $data['duracion_default'] ?? 30,
+            (int)($data['meses_abiertos'] ?? 3),
             $id
         ]);
         
@@ -109,14 +113,15 @@ class Profesional extends Model {
             
             // 2. Crear profesional con user_id vinculado
             $stmt = $db->prepare("
-                INSERT INTO profesionales (user_id, nombre, consultorio_default_id, duracion_default)
-                VALUES (:user_id, :nombre, :consultorio, :duracion)
+                INSERT INTO profesionales (user_id, nombre, consultorio_default_id, duracion_default, meses_abiertos)
+                VALUES (:user_id, :nombre, :consultorio, :duracion, :meses)
             ");
             $stmt->execute([
                 'user_id' => $operador_id,
                 'nombre' => $data['nombre'],
                 'consultorio' => $data['consultorio_default_id'] ?? null,
-                'duracion' => $data['duracion_default'] ?? 30
+                'duracion' => $data['duracion_default'] ?? 30,
+                'meses' => (int)($data['meses_abiertos'] ?? 3)
             ]);
             $profesional_id = $db->lastInsertId();
             
@@ -152,16 +157,17 @@ class Profesional extends Model {
         $db->beginTransaction();
         
         try {
-            // 1. Actualizar profesional (nombre, consultorio, duración)
+            // 1. Actualizar profesional (nombre, consultorio, duración, meses abiertos)
             $stmt = $db->prepare("
                 UPDATE profesionales 
-                SET nombre = ?, consultorio_default_id = ?, duracion_default = ?
+                SET nombre = ?, consultorio_default_id = ?, duracion_default = ?, meses_abiertos = ?
                 WHERE id = ?
             ");
             $stmt->execute([
                 $data['nombre'],
                 $data['consultorio_default_id'] ?? null,
                 $data['duracion_default'] ?? 30,
+                (int)($data['meses_abiertos'] ?? 3),
                 $id
             ]);
             
@@ -234,5 +240,12 @@ class Profesional extends Model {
         ");
         $stmt->execute([$id]);
         return $stmt->fetch();
+    }
+
+    public static function getMesesAbiertos($id) {
+        $stmt = self::db()->prepare("SELECT meses_abiertos FROM profesionales WHERE id = ?");
+        $stmt->execute([$id]);
+        $result = $stmt->fetch();
+        return (int)($result['meses_abiertos'] ?? 3);
     }
 }

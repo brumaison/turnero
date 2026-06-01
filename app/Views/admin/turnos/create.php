@@ -263,7 +263,7 @@ $(document).ready(function() {
             fecha_desde: '<?= date('Y-m-d') ?>'
         }, function(horarios) {
             if (horarios.error || horarios.length === 0) {
-                $('#lista-horarios-especialidad').html('<p class="text-muted">No hay horarios disponibles en los próximos 7 días</p>');
+                $('#lista-horarios-especialidad').html('<p class="text-muted">No hay horarios disponibles en los próximos 30 días</p>');
             } else {
                 let html = '';
                 let fechaActual = null;

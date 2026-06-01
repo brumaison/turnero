@@ -49,7 +49,7 @@
                             <h5 class="card-title mb-0">
                                 <?= htmlspecialchars($c['profesional']) ?>
                             </h5>
-                            <span class="badge bg-blue-lt text-blue">
+                            <span class="badge text-bg-info">
                                 <?= date('d/m/Y H:i', strtotime($c['fecha_hora'])) ?>
                             </span>
                         </div>

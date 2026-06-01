@@ -30,6 +30,12 @@
             </div>
             
             <div class="mb-3">
+                <label class="form-label">Meses abiertos para turnos</label>
+                <input type="number" class="form-control" name="meses_abiertos" value="3" min="1" max="12">
+                <small class="text-muted">Cuántos meses hacia adelante se pueden sacar turnos</small>
+            </div>
+            
+            <div class="mb-3">
                 <label class="form-label">Especialidades</label>
                 <select class="form-select" name="especialidades[]" multiple>
                     <?php foreach ($especialidades as $e): ?>
