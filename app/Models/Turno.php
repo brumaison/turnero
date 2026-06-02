@@ -18,12 +18,11 @@ class Turno extends Model {
         $stmt->execute();
         return $stmt->fetchAll();
     }
-    public static function getHorariosPorEspecialidad($especialidad_id, $fecha_desde, $dias = 30) {
+    public static function getHorariosPorEspecialidad($especialidad_id, $fecha_desde) {
     $db = self::db();
     
-    // Obtener profesionales con esta especialidad
     $stmt = $db->prepare("
-        SELECT p.id, p.nombre 
+        SELECT p.id, p.nombre, p.meses_abiertos 
         FROM profesionales p
         INNER JOIN profesional_especialidad pe ON p.id = pe.profesional_id
         WHERE pe.especialidad_id = ?
@@ -36,6 +35,9 @@ class Turno extends Model {
     $resultado = [];
     
     foreach ($profesionales as $prof) {
+        $meses = (int)($prof['meses_abiertos'] ?? 3);
+        $dias = (int)($meses * 30.44);
+        
         for ($i = 0; $i < $dias; $i++) {
             $fecha = date('Y-m-d', strtotime($fecha_desde . " +$i days"));
             $horarios = \App\Models\Agenda::getHorariosDisponibles($prof['id'], $fecha);
@@ -54,7 +56,7 @@ class Turno extends Model {
     }
 
     usort($resultado, fn($a, $b) => strcmp($a['fecha_hora'], $b['fecha_hora']));
-    return array_slice($resultado, 0, 20);
+    return $resultado;
 }
 
     public static function getRango($fecha_inicio, $fecha_fin, $profesional_id = null, $especialidad_id = null) {

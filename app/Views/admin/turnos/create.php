@@ -263,7 +263,7 @@ $(document).ready(function() {
             fecha_desde: '<?= date('Y-m-d') ?>'
         }, function(horarios) {
             if (horarios.error || horarios.length === 0) {
-                $('#lista-horarios-especialidad').html('<p class="text-muted">No hay horarios disponibles en los próximos 30 días</p>');
+                $('#lista-horarios-especialidad').html('<p class="text-muted">No hay horarios disponibles en el período configurado</p>');
             } else {
                 let html = '';
                 let fechaActual = null;
@@ -379,7 +379,7 @@ $(document).ready(function() {
             fecha_desde: '<?= date('Y-m-d') ?>'
         }, function(dias) {
             if (dias.error || dias.length === 0) {
-                $('#lista-dias').html('<p class="text-muted">No hay horarios disponibles en los próximos días</p>');
+                $('#lista-dias').html('<p class="text-muted">No hay horarios disponibles en el período configurado</p>');
             } else {
                 let html = '';
                 dias.forEach(dia => {
